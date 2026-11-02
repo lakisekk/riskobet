@@ -85,6 +85,10 @@ nav button .i{font-size:20px}nav button.on{color:var(--acc)}
 .pend{border-color:var(--acc)}
 .cd{font-variant-numeric:tabular-nums;color:var(--acc);font-weight:700}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--acc2);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+.rules b{display:block;margin-top:12px}.rules ul{margin:4px 0 0;padding-left:20px}.rules li{margin:3px 0;font-size:14px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:130px;margin-top:12px}.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;font-size:10px;color:var(--mut);min-width:0}
+.bars i{display:block;width:100%;border-radius:4px 4px 0 0;min-height:2px}.bars span{white-space:nowrap}
+.chips.wr{flex-wrap:wrap}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 .pos{color:var(--grn)}.neg{color:#ff8a8d}
 .kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi div{background:var(--card2);border-radius:10px;padding:10px}.kpi b{display:block;font-size:18px}
@@ -121,11 +125,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const DEF_CFG = { approvalLimit:0, ntfyTopic:'', margin:0.08, bbMargin:0.15, cashout:true, cashMargin:0.10, dropEvery:0, dropPct:0.05, maxStake:0, maxWin:0, maxLegs:8, suspendAll:false };
+const DEF_CFG = { approvalLimit:0, ntfyTopic:'', margin:0.08, bbMargin:0.15, cashout:true, cashMargin:0.10, dropEvery:0, dropPct:0.05, maxStake:0, maxWin:0, maxLegs:8, suspendAll:false, bells:'8:00,8:55,9:55,10:50,11:45,12:40,13:35,14:30', riskAlert:0, quick:[] };
 const $app = document.getElementById('app'), $modal = document.getElementById('modal'), $sheet = document.getElementById('sheet');
 const S = { user:null, profile:null, markets:[], myBets:[], allBets:[], users:[], cfg:{...DEF_CFG}, cfgLoaded:false,
   tab:'markets', adminSub:'events', feedFilter:'pending', authMode:'login', unsubs:[], registering:false, ctx:null,
-  seen:new Set(), betsLoaded:false, slip:[], seenOdds:{}, slipAmt:'', slipSig:'' };
+  seen:new Set(), betsLoaded:false, slip:[], seenOdds:{}, slipAmt:'', slipSig:'', catFilter: 'all' };
 const WANT_ADMIN = new URLSearchParams(location.search).has('schvalit');
 
 /* ================== POMOCNÉ ================== */
@@ -183,6 +187,47 @@ function surebetErr(kind, rows, opts){
   return '';
 }
 
+const RULES_HTML = `<h1>📜 Pravidla Riskobetu</h1><div class="rules">
+<b>1. Sázky a tikety</b><ul><li>Tiket platí okamžikem, kdy ho appka přijme. Podaný tiket nejde zrušit.</li><li>Platí kurz, který byl na tiketu při podání.</li><li>Bookmaker může tiket před přijetím schválit nebo zamítnout – při zamítnutí se body vrací.</li><li>Bookmaker může omezit maximální vklad, výhru i počet sázek na tiketu.</li></ul>
+<b>2. Vyhodnocení</b><ul><li>Sázky vyhodnocuje bookmaker podle skutečného výsledku.</li><li>Pokud se událost nekoná nebo nejde jasně rozhodnout, sázka se ruší a vklad se vrací. U AKO tiketu se zrušená část počítá kurzem 1,00.</li><li>Při chybě ve vyhodnocení může bookmaker výsledek opravit.</li></ul>
+<b>3. Chybné kurzy</b><ul><li>Zjevně chybný kurz (překlep, např. 95,00 místo 9,50) může bookmaker stornovat a vrátit vklad.</li></ul>
+<b>4. Fair play</b><ul><li>Je zakázáno ovlivňovat výsledek, na který jsi vsadil.</li><li>Je zakázáno zneužívat chyby appky – kdo chybu najde, nahlásí ji bookmakerovi.</li><li>Za porušení může bookmaker stornovat tikety, odebrat body nebo zablokovat účet.</li></ul>
+<b>5. Bookmaker</b><ul><li>Bookmaker může pravidla měnit, změny oznámí v appce.</li><li>V nejasných situacích rozhoduje bookmaker.</li></ul></div>`;
+const DEF_QUICK = [
+  { title:'Bude dneska test?', minutes:5, category:'Live', options:[{label:'Ano',odds:2.5},{label:'Ne',odds:1.45}] },
+  { title:'Skončí hodina dřív?', minutes:5, category:'Live', options:[{label:'Ano',odds:3},{label:'Ne',odds:1.3}] },
+  { title:'Bude dnes někdo vyvolán k tabuli?', minutes:5, category:'Live', options:[{label:'Ano',odds:1.4},{label:'Ne',odds:2.6}] },
+  { title:'Přijde učitel/ka pozdě?', minutes:3, category:'Live', options:[{label:'Ano',odds:2.2},{label:'Ne',odds:1.6}] } ];
+const quickList = () => (S.cfg.quick && S.cfg.quick.length) ? S.cfg.quick : DEF_QUICK;
+const localFromMs = t => t ? new Date(t - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : '';
+function closeLine(x){ const t = ms(x.closesAt); if (!t) return ''; const l = t - Date.now();
+  return `<div class="mut">Uzávěrka: ${fmtDate(x.closesAt)}${l > 0 && l < 3600e3 ? ` · zbývá <span class="cd" data-dl="${t}">${fmtLeft(l)}</span>` : ''}</div>`; }
+function bellTimes(){ const now = new Date(), out = [];
+  String(S.cfg.bells||'').split(',').map(x => x.trim()).filter(Boolean).forEach(b => { const [h, mi] = b.split(':').map(Number); if (isNaN(h)) return; const d = new Date(); d.setHours(h, mi||0, 0, 0); if (d > now) out.push([b, +d]); });
+  return out.slice(0, 6); }
+// odhad rizika z počítadel (tl = vsazeno, pw = možná výplata) – pro upozornění
+function itemExposure(it, ov){
+  const opt = (r, i) => ((ov && ov[r.id]) ? ov[r.id][i] : r.options[i]) || {};
+  const rows = it.rows.filter(isLive); if (!rows.length) return [0, ''];
+  if (it.type === 'g' && !it.exclusive) { let tot = 0; rows.forEach(r => { const st = (opt(r,0).tl||0) + (opt(r,1).tl||0); tot += Math.max(opt(r,0).pw||0, opt(r,1).pw||0) - st; }); return [tot, 'nejhorší kombinace']; }
+  const stake = rows.reduce((s, r) => s + r.options.reduce((s2, _, i) => s2 + (opt(r,i).tl||0), 0), 0);
+  let sc;
+  if (it.type === 's') sc = it.m.options.map((o, i) => [o.label, opt(it.m, i).pw||0]);
+  else { sc = rows.map(r => [`${r.rowLabel} ANO`, (opt(r,0).pw||0) + rows.filter(x => x.id !== r.id).reduce((s, x) => s + (opt(x,1).pw||0), 0)]);
+    if (it.nobody) sc.push(['Nikdo', rows.reduce((s, x) => s + (opt(x,1).pw||0), 0)]); }
+  let worst = -Infinity, lab = ''; sc.forEach(([l, pay]) => { if (pay - stake > worst) { worst = pay - stake; lab = l; } });
+  return [worst, lab];
+}
+function riskCheck(oldO, newO){
+  const lim = S.cfg.riskAlert; if (!(lim > 0)) return;
+  const done = new Set();
+  for (const mid of Object.keys(newO)) {
+    const m = M(mid); if (!m) continue; const it = itemOf(m); if (!it || done.has(it.id)) continue; done.add(it.id);
+    const [before] = itemExposure(it, oldO), [after, lab] = itemExposure(it, newO);
+    if (after >= lim && before < lim) ntfy('⚠️ Velké riziko', `${it.type==='g'?it.title:it.m.title}\nPři výsledku „${lab}“ bys prodělal až ${fmtN(after)} b.`);
+  }
+}
+
 /* ================== AUTH ================== */
 function errTxt(e){
   const c = e?.code || '';
@@ -200,6 +245,7 @@ function renderLogin(){
       <div class="seg"><button class="${!reg?'on':''}" data-act="authmode" data-m="login">Přihlásit</button><button class="${reg?'on':''}" data-act="authmode" data-m="register">Nový účet</button></div>
       <label>Jméno</label><input id="lu" autocomplete="username" autocapitalize="none" placeholder="např. Honza">
       <label>Heslo</label><input id="lp" type="password" autocomplete="${reg?'new-password':'current-password'}" placeholder="min. 6 znaků">
+      ${reg?`<label class="ck"><input type="checkbox" id="lrules"><span>Přečetl jsem si a souhlasím s <a href="#" data-act="rules" style="color:var(--acc)">pravidly</a></span></label>`:''}
       <button class="btn pri full" style="margin-top:14px" data-act="${reg?'register':'login'}">${reg?'Vytvořit účet':'Přihlásit se'}</button>
       <div class="err" id="lerr"></div>
     </div></div>`;
@@ -207,6 +253,7 @@ function renderLogin(){
 async function doLogin(register){
   const name = document.getElementById('lu').value.trim(), pw = document.getElementById('lp').value, $e = document.getElementById('lerr');
   if (!slug(name)) { $e.textContent = 'Zadej jméno.'; return; }
+  if (register && !document.getElementById('lrules')?.checked) { $e.textContent = 'Musíš souhlasit s pravidly.'; return; }
   $e.textContent = '';
   try {
     if (register) {
@@ -297,7 +344,7 @@ function render(){
   const showBar = S.slip.length && S.tab !== 'admin';
   const sd = showBar ? slipData() : null;
   $app.innerHTML = `
-    <div class="top"><div><div class="b">${esc(S.profile.name)}${isAdmin()?' <span class="badge">admin</span>':''}</div><button class="btn sm" style="padding:2px 0;background:none;color:var(--mut)" data-act="logout">Odhlásit</button></div><div class="pts">${fmtN(S.profile.points)} b</div></div>
+    <div class="top"><div><div class="b">${esc(S.profile.name)}${isAdmin()?' <span class="badge">admin</span>':''}</div><button class="btn sm" style="padding:2px 0;background:none;color:var(--mut)" data-act="logout">Odhlásit</button> <button class="btn sm" style="padding:2px 0 2px 10px;background:none;color:var(--mut)" data-act="rules">📜 Pravidla</button></div><div class="pts">${fmtN(S.profile.points)} b</div></div>
     ${body}
     ${showBar ? `<button class="slipbar" data-act="slipopen"><span>🧾 Tiket (${S.slip.length})</span><span>kurz ${sd.total>1?fmtOdds(sd.total):'–'} ›</span></button>` : ''}
     <nav>${tabs.map(([k,i,t]) => `<button class="${S.tab===k?'on':''}" data-act="tab" data-t="${k}"><span class="i">${i}</span>${t}${k==='admin'&&pc?`<span class="nb">${pc}</span>`:''}</button>`).join('')}</nav>`;
@@ -334,7 +381,7 @@ function groupCard(g, adminMode){
   }).join('');
   return `<div class="card">${cardHead(g, badgeOf(g))}
     <div class="b" style="font-size:17px;margin-top:8px">${esc(g.title)}</div>
-    ${ms(g.closesAt)?`<div class="mut">Uzávěrka: ${fmtDate(g.closesAt)}</div>`:''}
+    ${closeLine(g)}
     <div class="gt"><div class="gh"><span></span><span>${esc(heads[0].label)}</span><span>${esc(heads[1].label)}</span></div>${rows}</div>
     ${adminMode ? adminBar(g) : ''}</div>`;
 }
@@ -352,17 +399,21 @@ function singleCard(it, adminMode){
   }).join('');
   return `<div class="card">${cardHead(it, badgeOf(it))}
     <div class="b" style="font-size:17px;margin-top:8px">${esc(m.title)}</div>
-    ${ms(m.closesAt)?`<div class="mut">Uzávěrka: ${fmtDate(m.closesAt)}</div>`:''}
+    ${closeLine(m)}
     <div class="opts">${opts}</div>${adminMode ? adminBar(it) : ''}</div>`;
 }
 const itemCard = (it, adminMode) => it.type === 'g' ? groupCard(it, adminMode) : singleCard(it, adminMode);
 
 function viewMarkets(){
-  const items = buildItems(S.markets);
+  const all = buildItems(S.markets);
+  const cats = [...new Set(all.filter(i => itemStatus(i) !== 'done').map(i => i.rows[0].category).filter(Boolean))].sort((a,b) => a.localeCompare(b,'cs'));
+  const cf = cats.includes(S.catFilter) ? S.catFilter : 'all';
+  const items = cf === 'all' ? all : all.filter(i => i.rows[0].category === cf);
+  const chips = cats.length ? `<div class="chips">${[['all','Vše'], ...cats.map(c => [c, c])].map(([k,t]) => `<button class="${cf===k?'on':''}" data-act="cat" data-c="${esc(k)}">${esc(t)}</button>`).join('')}</div>` : '';
   const ban = S.cfg.suspendAll ? `<div class="banner">🔒 Sázení je momentálně pozastaveno</div>` : '';
-  if (!items.length) return ban + `<div class="empty">Zatím žádné sázky. 🎲</div>`;
+  if (!items.length) return ban + chips + `<div class="empty">Zatím žádné sázky. 🎲</div>`;
   const open = items.filter(i => itemStatus(i)==='open'), closed = items.filter(i => itemStatus(i)==='closed'), done = items.filter(i => itemStatus(i)==='done').slice(0,8);
-  return `${ban}${open.length?`<h2>Otevřené</h2>${open.map(i=>itemCard(i)).join('')}`:'<div class="empty">Teď není nic otevřené.</div>'}
+  return `${ban}${chips}${open.length?`<h2>Otevřené</h2>${open.map(i=>itemCard(i)).join('')}`:'<div class="empty">Teď není nic otevřené.</div>'}
     ${closed.length?`<h2>Čeká na výsledek</h2>${closed.map(i=>itemCard(i)).join('')}`:''}
     ${done.length?`<h2>Vyhodnocené</h2>${done.map(i=>itemCard(i)).join('')}`:''}`;
 }
@@ -463,7 +514,7 @@ async function placeBet(){
       const c = { ...DEF_CFG, ...(cs.exists() ? cs.data() : {}) }, pts = us.data().points;
       if (c.suspendAll) throw new Error('Sázení je pozastavené.');
       if (amount > pts) throw new Error('Nemáš dost bodů.');
-      const legs = [], mUpd = [];
+      const legs = [], mUpd = [], oldOpts = {}, newOpts = {};
       slip.forEach((s, k) => {
         const sn = msnaps[k]; if (!sn.exists()) throw new Error('Některá sázka už neexistuje.');
         const m = { id: sn.id, ...sn.data() }, o = m.options[s.i];
@@ -473,7 +524,8 @@ async function placeBet(){
         // počítadlo vsazených bodů + automatický pokles kurzu
         const tl = o.tl || 0; let odds = o.odds;
         if (c.dropEvery > 0 && c.dropPct > 0) { const n = Math.floor((tl + amount) / c.dropEvery) - Math.floor(tl / c.dropEvery); if (n > 0) odds = Math.max(1.01, floor2(odds * Math.pow(1 - c.dropPct, n))); }
-        mUpd.push([sn.ref, m.options.map((x, k2) => k2 === s.i ? { ...x, tl: tl + amount, odds } : x)]);
+        const nOpts = m.options.map((x, k2) => k2 === s.i ? { ...x, tl: tl + amount, pw: (x.pw || 0) + Math.floor(amount * o.odds), odds } : x);
+        oldOpts[m.id] = m.options; newOpts[m.id] = nOpts; mUpd.push([sn.ref, nOpts]);
       });
       const prod = legs.reduce((p,l) => p * l.o, 1), evs = legs.map(l => l.e), bb = new Set(evs).size < evs.length;
       const total = bb ? floor2(1 + (prod - 1) * (1 - c.bbMargin)) : floor2(prod);
@@ -482,9 +534,10 @@ async function placeBet(){
       tx.update(uref, { points: pts - amount });
       tx.set(bref, { uid:S.user.uid, name:S.profile.name, no: 'T' + Math.random().toString(36).slice(2,8).toUpperCase(), legs, mids: legs.map(l=>l.m), ev: evs, grp: legs.map(l=>l.g), odds: total, bb, amount, status, payout: 0, createdAt: serverTimestamp() });
       mUpd.forEach(([ref, options]) => tx.update(ref, { options }));
-      return { status, total, legs };
+      return { status, total, legs, oldOpts, newOpts };
     });
     S.slip = []; S.slipAmt = ''; ls.set('slip_' + S.user.uid, []);
+    try { riskCheck(res.oldOpts, res.newOpts); } catch {}
     if (res.status === 'pending') {
       ntfy('🎲 Tiket ke schválení', `${S.profile.name}: ${res.legs.map(l => `${l.t} – ${l.lbl}`).join(' + ')}\nKurz ${fmtOdds(res.total)} · vklad ${fmtN(amount)} b → výhra ${fmtN(amount*res.total)} b`);
       S.ctx = { type:'wait', keep:true, betId: bref.id }; renderWait();
@@ -609,6 +662,9 @@ function adminBar(it){
         <button class="btn sm ok" data-act="isettle" ${key}>✅ Vyhodnotit</button>
         <button class="btn sm" data-act="iedit" ${key}>✏️ Upravit</button>` : ''}
       <button class="btn sm" data-act="idup" ${key}>📋 Vypsat znovu</button>
+      ${it.rows.some(r => ['settled','cancelled'].includes(r.status)) ? `<button class="btn sm" data-act="iunsettle" ${key}>⏪ Vrátit vyhodnocení</button>` : ''}
+      ${it.type === 'g' && it.exclusive && it.rows.some(r => r.status === 'settled' && r.winnerIndex === 0) ? `<button class="btn sm ok" data-act="inext" ${key}>➡️ Další kolo</button>` : ''}
+      ${it.type === 's' ? `<button class="btn sm" data-act="qstore" ${key}>⚡ Uložit jako rychlovku</button>` : ''}
       ${live.length ? `<button class="btn sm no" data-act="icancel" ${key}>↩️ Zrušit</button>` : `<button class="btn sm no" data-act="idel" ${key}>🗑 Smazat</button>`}
     </div>`;
 }
@@ -631,16 +687,18 @@ function viewAdmin(){
   if (sub === 'events') {
     const items = buildItems(S.markets), act = items.filter(i => itemStatus(i) !== 'done'), old = items.filter(i => itemStatus(i) === 'done');
     inner = `<button class="btn pri full" data-act="newpick" style="margin-bottom:12px">➕ Nová sázka</button>
+      <div class="card"><div class="b">⚡ Rychlé live sázky</div><div class="chips wr" style="margin:8px 0 0">${quickList().map((q,i) => `<button data-act="qopen" data-i="${i}">${esc(q.title)}</button>`).join('')}</div></div>
       ${act.length?act.map(i=>itemCard(i,true)).join(''):'<div class="empty">Žádné aktivní sázky.</div>'}
       ${old.length?`<h2>Historie</h2>${old.slice(0,20).map(i=>itemCard(i,true)).join('')}`:''}`;
   } else if (sub === 'risk') inner = viewRisk();
   else if (sub === 'players') {
     inner = [...S.users].sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(u => {
       const bs = S.allBets.filter(b=>b.uid===u.id), open = bs.filter(b=>['open','pending'].includes(b.status));
+      const ps = playerStats(u.id);
       const lim = [u.maxStake>0?`max vklad ${fmtN(u.maxStake)}`:'', u.maxWin>0?`max výhra ${fmtN(u.maxWin)}`:''].filter(Boolean).join(' · ');
-      return `<div class="card"><div class="row sp"><span class="b">${esc(u.name)}</span><span class="pts" style="padding:3px 10px">${fmtN(u.points)} b</span></div>
+      return `<div class="card"><div class="row sp"><span class="b">${esc(u.name)}${ps.sharp?' <span class="badge susp">⚠️ ostrý hráč</span>':''}</span><span class="pts" style="padding:3px 10px">${fmtN(u.points)} b</span></div>
         <div class="mut">${bs.length} tiketů · ${open.length} ve hře (${fmtN(open.reduce((s,b)=>s+b.amount,0))} b)${lim?` · <span style="color:var(--acc)">${lim}</span>`:''}</div>
-        <div class="row" style="margin-top:8px"><button class="btn sm" data-act="ubets" data-u="${u.id}">🧾 Tikety</button><button class="btn sm" data-act="upts" data-u="${u.id}">± Body</button><button class="btn sm" data-act="ulim" data-u="${u.id}">🚧 Limity</button></div></div>`;
+        <div class="row" style="margin-top:8px"><button class="btn sm" data-act="uprof" data-u="${u.id}">📊</button><button class="btn sm" data-act="ubets" data-u="${u.id}">🧾 Tikety</button><button class="btn sm" data-act="upts" data-u="${u.id}">± Body</button><button class="btn sm" data-act="ulim" data-u="${u.id}">🚧 Limity</button></div></div>`;
     }).join('') || '<div class="empty">Zatím nikdo.</div>';
   } else if (sub === 'feed') {
     const f = S.feedFilter, fl = { pending: b => betSt(b)==='pending', open: b => ['open','pending'].includes(b.status), done: b => !['open','pending'].includes(b.status), all: () => true };
@@ -689,7 +747,12 @@ function viewStats(){
   const byU = {}; done.forEach(b => { byU[b.name] = (byU[b.name]||0) + b.amount - (b.payout||0); });
   const byE = {}; done.forEach(b => { const k = b.legs.length>1 ? (b.bb?'🧩 Betbuildery':'AKO tikety') : b.legs[0].t.split(' – ')[0]; byE[k] = (byE[k]||0) + b.amount - (b.payout||0); });
   const tbl = o => Object.entries(o).sort((a,b)=>a[1]-b[1]).map(([k,v]) => `<tr><td>${esc(k)}</td><td class="b ${v<0?'neg':'pos'}">${fmtS(v)} b</td></tr>`).join('');
-  return `<div class="kpi">
+  const days = {}; done.forEach(b => { const t = ms(b.settledAt) || ms(b.cashedAt) || ms(b.createdAt) || Date.now(), k = new Date(t).toDateString(); (days[k] = days[k] || { t, v:0 }).v += b.amount - (b.payout||0); });
+  const arr = Object.values(days).sort((a,b) => a.t - b.t).slice(-14), mx = Math.max(1, ...arr.map(x => Math.abs(x.v)));
+  let cum = 0; const cumArr = arr.map(x => (cum += x.v));
+  const bars = arr.length ? `<div class="bars">${arr.map((x, i) => `<div title="Stav po dni: ${fmtS(cumArr[i])} b"><span class="${x.v<0?'neg':'pos'}">${fmtS(x.v)}</span><i style="height:${Math.round(Math.abs(x.v)/mx*90)}px;background:${x.v<0?'var(--red)':'var(--acc2)'}"></i><span>${new Date(x.t).getDate()}.${new Date(x.t).getMonth()+1}.</span></div>`).join('')}</div>` : '<div class="mut" style="margin-top:8px">Zatím žádné vyhodnocené tikety.</div>';
+  return `<h2>💰 Pokladna bookmakera</h2><div class="card"><div class="row sp"><span class="mut">Celkový zisk</span><b class="${profit<0?'neg':'pos'}" style="font-size:20px">${fmtS(profit)} b</b></div>${bars}<div class="mut" style="margin-top:6px">Zisk po dnech (posledních 14 dní)</div></div>
+    <div class="kpi">
       <div><span class="mut">Zisk bookmakera</span><b class="${profit<0?'neg':'pos'}">${fmtS(profit)} b</b></div>
       <div><span class="mut">Marže (hold)</span><b>${dTurn ? (profit/dTurn*100).toFixed(1) : '0'} %</b></div>
       <div><span class="mut">Obrat celkem</span><b>${fmtN(turn)} b</b></div>
@@ -714,6 +777,11 @@ function viewSettings(){
       ${f('s_ms','Max. vklad na tiket', c.maxStake||0, '0 = bez limitu. Jednotlivým hráčům nastavíš jinak v záložce Hráči.', 'b')}
       ${f('s_mw','Max. výhra na tiket', c.maxWin||0, '0 = bez limitu.', 'b')}
       ${f('s_ml','Max. sázek na jednom tiketu', c.maxLegs||8, 'Nejvýš 8.', '')}</div>
+    <div class="card"><div class="b">🔔 Upozornění na riziko</div>
+      ${f('s_ra','Pošli notifikaci, když bys u jedné sázky mohl prodělat víc než', c.riskAlert||0, '0 = vypnuto. Počítá se z vsazených bodů (odhad).', 'b')}</div>
+    <div class="card"><div class="b">🕐 Zvonění (rychlé uzávěrky)</div>
+      <label>Časy oddělené čárkou</label><input id="s_bells" value="${esc(c.bells||'')}" placeholder="8:00, 8:55, 9:55">
+      <div class="mut" style="margin-top:4px">Ve formuláři sázky se ukážou jako tlačítka pro uzávěrku.</div></div>
     <div class="card"><div class="b">⏳ Schvalování tiketů</div>
       ${f('s_al','Schvaluju tikety s možnou výhrou nad', c.approvalLimit||0, '0 = vypnuto. Neschválený tiket se po 2,5 min přijme sám (hráči to nevidí).', 'b')}
       <label>Téma notifikací (ntfy)</label>
@@ -728,14 +796,18 @@ async function saveSettings(){
   const data = { margin: g('s_margin')/100, bbMargin: Math.min(0.9, g('s_bb')/100), cashout: document.getElementById('s_co').checked, cashMargin: Math.min(0.9, g('s_cm')/100),
     dropEvery: Math.max(0, Math.round(g('s_de'))), dropPct: Math.min(0.5, g('s_dp')/100), maxStake: Math.max(0, Math.round(g('s_ms'))), maxWin: Math.max(0, Math.round(g('s_mw'))),
     maxLegs: Math.min(MAX_LEGS, Math.max(1, Math.round(g('s_ml')) || MAX_LEGS)), approvalLimit: Math.max(0, Math.round(g('s_al'))),
-    ntfyTopic: document.getElementById('s_nt').value.trim().replace(/[^A-Za-z0-9_-]/g,'') };
+    ntfyTopic: document.getElementById('s_nt').value.trim().replace(/[^A-Za-z0-9_-]/g,''),
+    riskAlert: Math.max(0, Math.round(g('s_ra'))), bells: document.getElementById('s_bells').value.replace(/[^0-9:, ]/g,'') };
   try { await setDoc(doc(db,'config','main'), { ...S.cfg, ...data }); toast('Nastavení uloženo ✅'); } catch(e){ toast(errTxt(e), true); }
 }
 
 /* ---- notifikace + schvalování ---- */
 function ntfy(title, message){
   const topic = (S.cfg.ntfyTopic||'').trim(); if (!topic) return Promise.resolve();
-  return fetch('https://ntfy.sh/', { method:'POST', body: JSON.stringify({ topic, title, message, priority:5, tags:['moneybag'], click: location.origin + location.pathname + '?schvalit' }) }).catch(()=>{});
+  const qs = new URLSearchParams({ title, priority: 'urgent', tags: 'moneybag', click: location.origin + location.pathname + '?schvalit' });
+  return fetch(`https://ntfy.sh/${encodeURIComponent(topic)}?${qs}`, { method:'POST', body: message, keepalive: true })
+    .then(r => { if (!r.ok) throw new Error('ntfy ' + r.status); return true; })
+    .catch(err => { console.warn('ntfy:', err); return false; });
 }
 let hkBusy = false;
 async function housekeeping(){
@@ -770,15 +842,33 @@ async function settleMarkets(entries){
     const b = s.data(); if (!['open','pending'].includes(b.status)) return; n++;
     const legs = b.legs.map(l => (l.m in res && l.st === 'open') ? { ...l, st: res[l.m] === null ? 'void' : (l.i === res[l.m] ? 'won' : 'lost') } : l);
     let upd = { legs };
-    if (legs.some(l => l.st === 'lost')) upd = { legs, status:'lost', payout:0 };
+    if (legs.some(l => l.st === 'lost')) upd = { legs, status:'lost', payout:0, settledAt: serverTimestamp() };
     else if (legs.every(l => ['won','void'].includes(l.st))) {
-      if (legs.every(l => l.st === 'void')) { upd = { legs, status:'void', payout:b.amount }; add[b.uid] = (add[b.uid]||0) + b.amount; }
-      else { const vd = legs.filter(l => l.st === 'void').reduce((p,l) => p * l.o, 1), p = Math.floor(b.amount * Math.max(1, b.odds / vd) + 1e-9); upd = { legs, status:'won', payout:p }; add[b.uid] = (add[b.uid]||0) + p; }
+      if (legs.every(l => l.st === 'void')) { upd = { legs, status:'void', payout:b.amount, settledAt: serverTimestamp() }; add[b.uid] = (add[b.uid]||0) + b.amount; }
+      else { const vd = legs.filter(l => l.st === 'void').reduce((p,l) => p * l.o, 1), p = Math.floor(b.amount * Math.max(1, b.odds / vd) + 1e-9); upd = { legs, status:'won', payout:p, settledAt: serverTimestamp() }; add[b.uid] = (add[b.uid]||0) + p; }
     } else if (b.status === 'pending' && leftMs(b) <= 0) upd.status = 'open';
     ops.push([s.ref, upd]);
   });
   Object.entries(add).forEach(([uid,p]) => ops.push([doc(db,'users',uid), { points: increment(p) }]));
   entries.forEach(e => ops.push([doc(db,'markets',e.mid), { status: e.win === null ? 'cancelled' : 'settled', winnerIndex: e.win, settledAt: serverTimestamp() }]));
+  for (let i = 0; i < ops.length; i += 450) { const bt = writeBatch(db); ops.slice(i,i+450).forEach(([r,d]) => bt.update(r,d)); await bt.commit(); }
+  return n;
+}
+async function unsettleMarkets(ids){
+  const set = new Set(ids), found = new Map();
+  for (let i = 0; i < ids.length; i += 30) { const s = await getDocs(query(collection(db,'bets'), where('mids','array-contains-any', ids.slice(i,i+30)))); s.forEach(x => found.set(x.id, x)); }
+  const ops = [], sub = {}; let n = 0;
+  found.forEach(s => {
+    const b = s.data(); if (['rejected','cashout'].includes(b.status) || b.voidedAt) return;
+    if (!b.legs.some(l => set.has(l.m) && l.st !== 'open')) return; n++;
+    const legs = b.legs.map(l => set.has(l.m) ? { ...l, st:'open' } : l);
+    let status = b.status, payout = b.payout || 0;
+    if (['won','void'].includes(b.status)) { sub[b.uid] = (sub[b.uid]||0) + payout; payout = 0; status = 'open'; }
+    if (legs.some(l => l.st === 'lost')) status = 'lost'; else if (status === 'lost') status = 'open';
+    ops.push([s.ref, { legs, status, payout, settledAt: null }]);
+  });
+  Object.entries(sub).forEach(([uid, p]) => ops.push([doc(db,'users',uid), { points: increment(-p) }]));
+  ids.forEach(id => ops.push([doc(db,'markets',id), { status:'closed', winnerIndex:null, settledAt:null }]));
   for (let i = 0; i < ops.length; i += 450) { const bt = writeBatch(db); ops.slice(i,i+450).forEach(([r,d]) => bt.update(r,d)); await bt.commit(); }
   return n;
 }
@@ -806,7 +896,11 @@ function openLive(m){
       <div class="mut">${esc(o.label)}${o.tl?` · ${fmtN(o.tl)} b`:''}</div>
       <div class="row"><button data-act="lstep" data-d="-1">−</button><input class="lo" inputmode="decimal" value="${o.odds>1?fmtOdds(o.odds):''}"><button data-act="lstep" data-d="1">+</button></div>
       <div class="row" style="margin-top:4px"><button class="tg ${o.locked?'on':''}" data-act="ltog" data-k="lock">🔒</button><button class="tg bo ${o.boostFrom>1?'on':''}" data-act="ltog" data-k="boost">🔥</button></div></div>`; };
+  const bulk = it.type === 'g'
+    ? `<button class="btn sm" data-act="lbulk" data-i="0" data-f="0.95">ANO −5 %</button><button class="btn sm" data-act="lbulk" data-i="0" data-f="1.05">ANO +5 %</button><button class="btn sm" data-act="lbulk" data-i="1" data-f="0.95">NE −5 %</button><button class="btn sm" data-act="lbulk" data-i="1" data-f="1.05">NE +5 %</button>`
+    : `<button class="btn sm" data-act="lbulk" data-i="all" data-f="0.95">Vše −5 %</button><button class="btn sm" data-act="lbulk" data-i="all" data-f="1.05">Vše +5 %</button>`;
   openModal(`<h1>⚡ Live kurzy</h1><div class="mut">${esc(it.type==='g'?it.title:it.m.title)}</div>
+    <div class="row wrap" style="margin-top:8px">${bulk}</div>
     ${rows.map(r => `<div class="lrow ${r.suspended?'susp':''}" data-id="${r.id}" data-susp="${r.suspended?1:''}">
       ${it.type==='g'?`<div class="row sp"><b>${esc(r.rowLabel)}</b><button class="tg ${r.suspended?'on':''}" data-act="ltog" data-k="susp">⏸ ${r.suspended?'Pozastaveno':'Pozastavit'}</button></div>`
         : `<div class="row sp"><b>Celá sázka</b><button class="tg ${r.suspended?'on':''}" data-act="ltog" data-k="susp">⏸ ${r.suspended?'Pozastaveno':'Pozastavit'}</button></div>`}
@@ -844,19 +938,28 @@ function openPick(){
 }
 const evList = () => [...new Set(S.markets.filter(m => m.evName).map(m => m.evName))];
 function commonFields(src){
-  return `<label>Kategorie (nepovinné)</label><input id="f_c" placeholder="Ekonomika" value="${esc(src?.category||'')}">
-    <label>Uzávěrka sázek (nepovinné)</label><input id="f_d" type="datetime-local" value="${toLocalInput(src?.closesAt)}">
+  return `<label>Kategorie (hráči si podle ní filtrují)</label><input id="f_c" list="catl" placeholder="Ekonomika" value="${esc(src?.category||'')}"><datalist id="catl">${[...new Set(S.markets.map(m => m.category).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join('')}</datalist>
+    <label>Uzávěrka sázek (nepovinné) – sázky se samy zavřou</label><input id="f_d" type="datetime-local" value="${toLocalInput(src?.closesAt)}">
+    <div class="chips wr" style="margin-top:6px">${[5,10,15].map(m => `<button data-act="setclose" data-m="${m}">+${m} min</button>`).join('')}${bellTimes().map(([b,t]) => `<button data-act="setclose" data-t="${t}">🔔 ${b}</button>`).join('')}<button data-act="setclose" data-t="0">Bez uzávěrky</button></div>
     <label class="ck"><input type="checkbox" id="f_bb" ${src?.bb?'checked':''}><span>🧩 Povolit betbuilder<br><span class="mut">Hráči můžou kombinovat víc sázek z této události (i s jinými sázkami se stejným názvem události).</span></span></label>
     <label>Událost pro betbuilder (stejný název = jde kombinovat)</label><input id="f_ev" list="evl" placeholder="např. Ekonomika 3. 11." value="${esc(src?.evName||'')}"><datalist id="evl">${evList().map(e=>`<option value="${esc(e)}">`).join('')}</datalist>`;
 }
 function gRowHtml(r){
   return `<div class="grow" data-id="${r?.id||''}" data-done="${r?.done?1:''}"><input class="rl" placeholder="Jméno" value="${esc(r?.label||'')}" ${r?.done?'disabled':''}><input class="rp" inputmode="decimal" placeholder="%" value="${r?.p?pct(r.p):''}" ${r?.done?'disabled':''}><input class="ra" inputmode="decimal" value="${r?.a>1?fmtOdds(r.a):''}" ${r?.done?'disabled':''}><input class="rn" inputmode="decimal" value="${r?.n>1?fmtOdds(r.n):''}" ${r?.done?'disabled':''}>${r?.id?'<span></span>':'<button class="btn sm" data-act="rowdel">✕</button>'}</div>`;
 }
+const nextTitle = t => { for (const [a,b] of [['první','druhý'],['druhý','třetí'],['třetí','čtvrtý'],['čtvrtý','pátý'],['pátý','šestý']]) if (t.includes(a)) return t.replace(a, b); return t + ' (další kolo)'; };
 function openGroupForm(gid, dup){
   const g = gid ? groupById(gid) : null, src = g?.rows[0];
-  const rows = g ? g.rows.map(r => ({ id: dup ? '' : r.id, label:r.rowLabel, p:r.options[0].p||0, a:r.options[0].odds, n:r.options[1].odds, done: !dup && !isLive(r) })) : [];
+  let rows = g ? g.rows.map(r => ({ id: dup ? '' : r.id, label:r.rowLabel, p:r.options[0].p||0, a:r.options[0].odds, n:r.options[1].odds, done: !dup && !isLive(r) })) : [];
+  if (dup === 'next') {
+    const winners = new Set(g.rows.filter(r => r.status === 'settled' && r.winnerIndex === 0).map(r => r.rowLabel));
+    const sumAll = rows.reduce((s,r) => s + r.p, 0);
+    rows = rows.filter(r => !winners.has(r.label));
+    const sumRem = rows.reduce((s,r) => s + r.p, 0);
+    if (sumAll > 0 && sumRem > 0) rows = rows.map(r => { const p = Math.min(0.95, r.p * sumAll / sumRem); return { ...r, p, a: oddsFromP(p, S.cfg.margin), n: oddsFromP(1 - p, S.cfg.margin) }; });
+  }
   openModal(`<h1>${g&&!dup?'Upravit tabulku':'Nová tabulka Ano / Ne'}</h1>
-    <label>Otázka</label><input id="f_t" placeholder="Kdo bude zkoušen z ekonomiky jako první?" value="${esc(g?.title||'')}">
+    <label>Otázka</label><input id="f_t" placeholder="Kdo bude zkoušen z ekonomiky jako první?" value="${esc(dup === 'next' ? nextTitle(g.title) : (g?.title||''))}">
     ${commonFields(src)}
     <label class="ck"><input type="checkbox" id="f_ex" ${!src || src.exclusive?'checked':''}><span>Vyhrát (ANO) může jen jeden řádek<br><span class="mut">Např. kdo bude zkoušen jako první. ANO pak nejde kombinovat s dalším řádkem.</span></span></label>
     <label class="ck"><input type="checkbox" id="f_nb" ${!src || src.nobody?'checked':''}><span>Může se stát, že neplatí žádný řádek</span></label>
@@ -974,6 +1077,59 @@ function openLimits(uid){ const u = S.users.find(x=>x.id===uid);
     <label>Max. výhra na tiket</label><input id="ul_w" type="number" inputmode="numeric" value="${u.maxWin||0}">
     <div class="row" style="margin-top:12px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="ulsave">Uložit</button></div>`, { uid, keep:true }); }
 
+function playerStats(uid){
+  const bs = S.allBets.filter(b => b.uid === uid && !['rejected','void'].includes(b.status));
+  const done = bs.filter(b => ['won','lost','cashout'].includes(b.status)), won = done.filter(b => b.status === 'won').length;
+  const staked = done.reduce((s,b) => s + b.amount, 0), paid = done.reduce((s,b) => s + (b.payout||0), 0), profit = paid - staked, roi = staked ? profit / staked : 0;
+  const cats = {}; bs.forEach(b => b.legs.forEach(l => { const c = M(l.m)?.category || l.t.split(' – ')[0]; cats[c] = (cats[c]||0) + 1; }));
+  return { n: bs.length, done: done.length, won, staked, paid, profit, roi,
+    avgOdds: bs.length ? bs.reduce((s,b) => s + b.odds, 0) / bs.length : 0, avgStake: bs.length ? bs.reduce((s,b) => s + b.amount, 0) / bs.length : 0,
+    best: done.reduce((m,b) => Math.max(m, (b.payout||0) - b.amount), 0), ako: bs.length ? bs.filter(b => b.legs.length > 1).length / bs.length : 0,
+    sharp: done.length >= 5 && profit > 0 && (roi > 0.2 || won / done.length > 0.6), cats };
+}
+function openProfile(uid){
+  const u = S.users.find(x => x.id === uid), p = playerStats(uid);
+  const cats = Object.entries(p.cats).sort((a,b) => b[1] - a[1]).slice(0,5).map(([c,n]) => `${esc(c)} (${n})`).join(', ') || '–';
+  openModal(`<h1>📊 ${esc(u.name)}</h1>
+    ${p.sharp ? `<div class="warn">⚠️ Ostrý hráč – vyhrává nadprůměrně. Zvaž nižší limity.</div>` : ''}
+    <div class="kpi" style="margin-top:10px">
+      <div><span class="mut">Zisk hráče proti tobě</span><b class="${p.profit>0?'neg':'pos'}">${fmtS(p.profit)} b</b></div>
+      <div><span class="mut">ROI</span><b>${(p.roi*100).toFixed(0)} %</b></div>
+      <div><span class="mut">Úspěšnost</span><b>${p.done ? Math.round(p.won/p.done*100) : 0} % (${p.won}/${p.done})</b></div>
+      <div><span class="mut">Tiketů</span><b>${p.n}</b></div>
+      <div><span class="mut">Prům. kurz</span><b>${p.avgOdds ? fmtOdds(p.avgOdds) : '–'}</b></div>
+      <div><span class="mut">Prům. vklad</span><b>${fmtN(p.avgStake)} b</b></div>
+      <div><span class="mut">Největší výhra</span><b>${fmtN(p.best)} b</b></div>
+      <div><span class="mut">AKO / BB</span><b>${Math.round(p.ako*100)} %</b></div></div>
+    <div class="mut" style="margin-top:10px">Nejčastěji sází na: ${cats}</div>
+    <div class="row" style="margin-top:12px"><button class="btn full" data-act="ulim" data-u="${uid}">🚧 Limity</button><button class="btn full" data-act="ubets" data-u="${uid}">🧾 Tikety</button></div>
+    <button class="btn full" style="margin-top:8px" data-act="close">Zavřít</button>`);
+}
+function openQuick(i){
+  const q = quickList()[i];
+  openModal(`<h1>⚡ Rychlá sázka</h1>
+    <label>Otázka</label><input id="q_t" value="${esc(q.title)}">
+    <label>Kategorie</label><input id="q_c" value="${esc(q.category||'Live')}">
+    <label>Možnosti</label><div class="oh2"><span>Možnost</span><span>%</span><span>Kurz</span><span></span></div>
+    <div id="orows">${q.options.map(o => oRowHtml(o)).join('')}</div><button class="btn sm" data-act="oaddone">➕ Možnost</button>
+    <label>Sázky se zavřou za</label><div class="chips wr">${[2,3,5,10,15,45].map(m => `<button class="${m===q.minutes?'on':''}" data-act="qmin" data-m="${m}">${m} min</button>`).join('')}</div>
+    <div class="err" id="ferr"></div>
+    <div class="row" style="margin-top:8px"><button class="btn full" data-act="close">Zpět</button><button class="btn pri full" data-act="qgo">⚡ Vypsat</button></div>
+    <button class="btn sm no" style="margin-top:10px" data-act="qdel" data-i="${i}">🗑 Odebrat ze šablon</button>`, { type:'form', keep:true, qmin: q.minutes || 5 });
+}
+async function quickGo(){
+  const $e = document.getElementById('ferr'), title = document.getElementById('q_t').value.trim(), category = document.getElementById('q_c').value.trim();
+  const opts = [...$sheet.querySelectorAll('#orows .optrow')].map(r => ({ label: r.querySelector('.ol').value.trim(), odds: floor2(parseNum(r.querySelector('.oo').value) || 0), p: (parseNum(r.querySelector('.op').value)||0)/100 })).filter(o => o.label);
+  if (!title || opts.length < 2) { $e.textContent = 'Vyplň otázku a aspoň 2 možnosti.'; return; }
+  if (opts.some(o => o.odds && o.odds < 1.01)) { $e.textContent = 'Kurz musí být aspoň 1,01.'; return; }
+  const err = surebetErr('single', opts); if (err) { $e.textContent = err; return; }
+  const id = doc(collection(db,'markets')).id;
+  try { await setDoc(doc(db,'markets',id), { kind:'single', grp:id, title, ev:'m:'+id, evName:'', bb:false, exclusive:false, nobody:false, category,
+      options: opts.map(o => ({ ...o, tl:0 })), closesAt: Timestamp.fromDate(new Date(Date.now() + S.ctx.qmin * 60000)), status:'open', suspended:false, winnerIndex:null, createdAt: serverTimestamp() });
+    const mins = S.ctx.qmin; closeModal(); toast(`⚡ Vypsáno na ${mins} min`); } catch(e){ $e.textContent = errTxt(e); }
+}
+async function saveQuickList(list){ try { await updateDoc(doc(db,'config','main'), { quick: list }); } catch(e){ toast(errTxt(e), true); } }
+
 /* ================== EVENTY ================== */
 document.addEventListener('input', e => {
   if (e.target.classList.contains('rp')) rowRecalc(e.target.closest('.grow'));
@@ -984,6 +1140,23 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, d = t.dataset;
   switch (a) {
     case 'authmode': S.authMode = d.m; renderLogin(); break;
+    case 'rules': e.preventDefault(); if (!S.user) { const keepU = document.getElementById('lu')?.value || '', keepP = document.getElementById('lp')?.value || '';
+        openModal(RULES_HTML + `<button class="btn pri full" style="margin-top:12px" data-act="rulesok">Rozumím</button>`, { keep:true, login:{ keepU, keepP } }); }
+      else openModal(RULES_HTML + `<button class="btn full" style="margin-top:12px" data-act="close">Zavřít</button>`); break;
+    case 'rulesok': { $modal.classList.remove('show'); S.ctx = null; const c = document.getElementById('lrules'); if (c) c.checked = true; break; }
+    case 'cat': S.catFilter = d.c; render(); break;
+    case 'setclose': { const inp = document.getElementById('f_d'); inp.value = d.m ? localFromMs(Date.now() + (+d.m) * 60000) : (+d.t ? localFromMs(+d.t) : ''); break; }
+    case 'qopen': openQuick(+d.i); break;
+    case 'qmin': $sheet.querySelectorAll('[data-act=qmin]').forEach(b => b.classList.toggle('on', b === t)); S.ctx.qmin = +d.m; break;
+    case 'qgo': quickGo(); break;
+    case 'qdel': { if (!confirm('Odebrat tuhle rychlou sázku ze šablon?')) break; const l = [...quickList()]; l.splice(+d.i, 1); await saveQuickList(l.length ? l : DEF_QUICK.slice(0,1)); closeModal(); break; }
+    case 'qstore': { const it = itemFromKey(d), m = it.m; const l = [...quickList(), { title: m.title, minutes: 5, category: m.category || 'Live', options: m.options.map(o => ({ label:o.label, odds:o.odds })) }];
+      await saveQuickList(l); toast('⚡ Uloženo do rychlých sázek'); break; }
+    case 'lbulk': { const f = +d.f; $sheet.querySelectorAll(d.i === 'all' ? '.lcell' : `.lcell[data-i="${d.i}"]`).forEach(c => { if (c.dataset.lock) return; const inp = c.querySelector('.lo'), v = parseNum(inp.value); if (v > 1) inp.value = fmtOdds(Math.max(1.01, floor2(v * f))); }); toast('Posunuto – zkontroluj a ulož'); break; }
+    case 'uprof': openProfile(d.u); break;
+    case 'iunsettle': { const it = itemFromKey(d); if (!confirm('Vrátit vyhodnocení? Výhry se hráčům odečtou (body můžou jít i do mínusu), sázka se uzavře a můžeš ji vyhodnotit znovu.')) break;
+      try { const n = await unsettleMarkets(it.rows.filter(r => ['settled','cancelled'].includes(r.status)).map(r => r.id)); toast(`Vráceno (${n} tiketů) – teď vyhodnoť znovu`); } catch(err){ toast(errTxt(err), true); } break; }
+    case 'inext': openGroupForm(d.g, 'next'); break;
     case 'login': doLogin(false); break;
     case 'register': doLogin(true); break;
     case 'logout': if (confirm('Odhlásit se?')) signOut(auth); break;
@@ -1062,7 +1235,9 @@ document.addEventListener('click', async e => {
     case 'cgen': document.getElementById('s_nt').value = 'sazkovka-' + Math.random().toString(36).slice(2,10); break;
     case 'csave': saveSettings(); break;
     case 'ctest': { const topic = document.getElementById('s_nt').value.trim(); if (!topic) { toast('Nejdřív vyplň téma', true); break; }
-      const old = S.cfg.ntfyTopic; S.cfg.ntfyTopic = topic; await ntfy('🎲 Test', 'Notifikace ze sázkovky fungují ✅'); S.cfg.ntfyTopic = old; toast('Odesláno – mrkni do ntfy'); break; }
+      const old = S.cfg.ntfyTopic; S.cfg.ntfyTopic = topic; const ok = await ntfy('🎲 Test', 'Notifikace ze sázkovky fungují ✅'); S.cfg.ntfyTopic = old;
+      toast(ok ? 'Odesláno ✅ – mrkni do ntfy' : 'Nepodařilo se odeslat – zkontroluj internet / blokátor reklam', !ok);
+      if (ok && topic !== (old||'')) toast('Nezapomeň dát „Uložit nastavení“ – bez toho hráči notifikaci neposílají', true); break; }
   }
 });
 document.addEventListener('keydown', e => { if (e.key==='Enter' && !S.user && document.getElementById('lp')) doLogin(S.authMode==='register'); });
