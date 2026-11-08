@@ -146,7 +146,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const DEF_CFG = { approvalLimit:0, ntfyTopic:'', margin:0.08, bbMargin:0.15, cashout:true, cashMargin:0.10, dropEvery:0, dropPct:0.05, maxStake:0, maxWin:0, maxLegs:8, suspendAll:false, bells:'8:00,8:55,9:55,10:50,11:45,12:40,13:35,14:30', riskAlert:0, quick:[], akoOn:false, akoN1:4, akoP1:0.05, akoN2:6, akoP2:0.10, akoMin:1.2, insOn:false, insMinLegs:4, insMinOdds:1.3, insMax:0, boostMax:0, combos:{}, promos:[] };
+const DEF_CFG = { approvalLimit:0, ntfyTopic:'', margin:0.08, bbMargin:0.15, cashout:true, cashMargin:0.10, dropEvery:0, dropPct:0.05, maxStake:0, maxWin:0, maxLegs:8, suspendAll:false, bells:'8:00,8:55,9:55,10:50,11:45,12:40,13:35,14:30', riskAlert:0, quick:[], akoOn:false, akoN1:4, akoP1:0.05, akoN2:6, akoP2:0.10, akoMin:1.2, insOn:false, insMinLegs:4, insMinOdds:1.3, insMax:0, boostMax:0, combos:{}, promos:[], maxMarket:0, autoSuspend:0, liveDelay:5, ladder:true, offerTtl:3 };
 const $app = document.getElementById('app'), $modal = document.getElementById('modal'), $sheet = document.getElementById('sheet');
 const S = { user:null, profile:null, markets:[], myBets:[], allBets:[], users:[], cfg:{...DEF_CFG}, cfgLoaded:false,
   tab:'markets', adminSub:'events', feedFilter:'pending', authMode:'login', unsubs:[], registering:false, ctx:null,
@@ -175,10 +175,12 @@ const legTitle = m => m.kind === 'row' ? `${m.groupTitle} – ${m.rowLabel}` : m
 const leftMs = b => ms(b.createdAt) ? AUTO_MS - (Date.now() - ms(b.createdAt)) : AUTO_MS;
 const betSt = b => (b.status === 'pending' && leftMs(b) <= 0) ? 'open' : b.status;
 const possWin = b => Math.floor(b.amount * b.odds + 1e-9);
-const effLimit = (k) => { const u = S.users.find(x => x.id === S.user?.uid) || S.profile || {}; return (u[k] > 0) ? u[k] : (S.cfg[k] || 0); };
+const me = () => S.users.find(x => x.id === S.user?.uid) || S.profile || {};
+const effLimit = (k) => { const u = me(); return (u[k] > 0) ? u[k] : Math.floor((S.cfg[k] || 0) * (u.factor > 0 ? u.factor : 1)); };
+const isBlocked = u => u?.block === 'view' && (!ms(u.blockUntil) || ms(u.blockUntil) > Date.now());
 const pct = f => Math.round((f || 0) * 1000) / 10;
 const STATUS_TXT = { open:'Otevřeno', closed:'Uzavřeno', settled:'Vyhodnoceno', cancelled:'Zrušeno' };
-const BET_TXT = { open:'Přijato', pending:'Čeká na schválení', won:'Výhra', lost:'Prohra', void:'Stornováno', rejected:'Zamítnuto', cashout:'Cash-out' };
+const BET_TXT = { offer:'Protinabídka', open:'Přijato', pending:'Čeká na schválení', won:'Výhra', lost:'Prohra', void:'Stornováno', rejected:'Zamítnuto', cashout:'Cash-out' };
 const LEG_ICON = { open:'⏳', won:'✅', lost:'❌', void:'↩️' };
 
 function toast(msg, bad){ const d=document.createElement('div'); d.className='toast'; if(bad) d.style.background='var(--red)'; d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(), 2800); }
@@ -188,7 +190,18 @@ $modal.addEventListener('click', e => { if (e.target === $modal) closeModal(); }
 const ls = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
 /* ---- kurzy z pravděpodobnosti + kontrola surebetu ---- */
-const oddsFromP = (p, m) => (p > 0 && p < 1) ? Math.max(1.01, floor2(1 / (p * (1 + m)))) : 0;
+// standardní stupnice kurzů (jako u sázkovek): kurz se vždy zaokrouhlí dolů na běžnou hodnotu
+const LADDER = [[2,0.01],[3,0.02],[4,0.05],[6,0.1],[10,0.2],[20,0.5],[30,1],[50,2],[100,5],[1000,10]];
+function ladderDown(o){ if (!(o > 1) || S.cfg.ladder === false) return o; let lo = 1;
+  for (const [hi, st] of LADDER) { if (o <= hi + 1e-9) return Math.max(1.01, Math.round((lo + Math.floor((o - lo) / st + 1e-9) * st) * 100) / 100); lo = hi; }
+  return Math.floor(o); }
+function ladderStep(o, dir){
+  if (S.cfg.ladder === false) return Math.max(1.01, floor2(o + dir * (o < 1.5 ? 0.01 : o < 3 ? 0.05 : o < 6 ? 0.1 : 0.25)));
+  const v = ladderDown(o); if (dir < 0 && v < o - 1e-9) return v;
+  let lo = 1; for (const [hi, st] of LADDER) { if (dir > 0 ? v < hi - 1e-9 : v <= hi + 1e-9) return Math.max(1.01, Math.round((v + dir * st) * 100) / 100); lo = hi; }
+  return v + dir * 10; }
+const oddsFromP = (p, m) => (p > 0 && p < 1) ? Math.max(1.01, ladderDown(floor2(1 / (p * (1 + m))))) : 0;
+const formMargin = () => { const v = parseNum(document.getElementById('f_mg')?.value); return v >= 0 ? v / 100 : S.cfg.margin; };
 function surebetErr(kind, rows, opts){
   // rows: [{label, A:{odds,locked}, N:{odds,locked}}]  (tabulka)  /  options: [{label, odds, locked}] (jedna otázka)
   const av = o => o && !o.locked && o.odds > 1;
@@ -241,14 +254,32 @@ function itemExposure(it, ov){
   return [worst, lab];
 }
 function riskCheck(oldO, newO){
-  const lim = S.cfg.riskAlert; if (!(lim > 0)) return;
+  const lim = S.cfg.riskAlert, sus = S.cfg.autoSuspend; if (!(lim > 0) && !(sus > 0)) return;
   const done = new Set();
   for (const mid of Object.keys(newO)) {
     const m = M(mid); if (!m) continue; const it = itemOf(m); if (!it || done.has(it.id)) continue; done.add(it.id);
-    const [before] = itemExposure(it, oldO), [after, lab] = itemExposure(it, newO);
-    if (after >= lim && before < lim) ntfy('⚠️ Velké riziko', `${it.type==='g'?it.title:it.m.title}\nPři výsledku „${lab}“ bys prodělal až ${fmtN(after)} b.`);
+    const [before] = itemExposure(it, oldO), [after, lab] = itemExposure(it, newO), name = it.type==='g'?it.title:it.m.title;
+    if (sus > 0 && after >= sus) {
+      const rows = it.rows.filter(r => r.status === 'open' && !r.suspended);
+      if (rows.length) { const bt = writeBatch(db); rows.forEach(r => bt.update(doc(db,'markets',r.id), { suspended: true })); bt.commit().catch(()=>{});
+        ntfy('⏸ Automaticky pozastaveno', `${name}\nPři výsledku „${lab}“ bys prodělal až ${fmtN(after)} b – sázka se zamkla.`); }
+    } else if (lim > 0 && after >= lim && before < lim) ntfy('⚠️ Velké riziko', `${name}\nPři výsledku „${lab}“ bys prodělal až ${fmtN(after)} b.`);
   }
 }
+// limit vkladu na jednu sázku (součet všech tiketů hráče)
+function marketLimitErr(slip, amount){
+  const lim = effLimit('maxMarket'); if (!lim) return '';
+  for (const s of slip) { const used = S.myBets.filter(b => !['rejected','void'].includes(b.status) && b.mids.includes(s.m)).reduce((t,b) => t + b.amount, 0);
+    if (used + amount > lim) { const m = M(s.m); return `Na „${m ? legTitle(m) : 'tuhle sázku'}“ můžeš vsadit celkem max. ${fmtN(lim)} b (zbývá ${fmtN(Math.max(0, lim - used))} b).`; } }
+  return '';
+}
+// odečtení zamítnutých / stornovaných vkladů ze statistik
+function uncountOps(b, x, dropN){
+  return b.legs.map(l => { const m = M(l.m); if (!m) return null;
+    const options = m.options.map((o, i) => i !== l.i ? o : { ...o, tl: Math.max(0, (o.tl||0) - x), pw: Math.max(0, (o.pw||0) - Math.floor(x * l.o)), n: Math.max(0, (o.n||0) - (dropN ? 1 : 0)) });
+    m.options = options; return [doc(db,'markets',m.id), { options }]; }).filter(Boolean);
+}
+function logA(a, d){ if (!isAdmin()) return; setDoc(doc(collection(db,'log')), { t: Timestamp.fromDate(new Date()), a, d: String(d||'').slice(0, 400) }).catch(()=>{}); }
 
 /* ---- férové kurzy, řazení, štítky, statistiky ---- */
 function withFair(options, prevOpts){
@@ -258,7 +289,8 @@ function withFair(options, prevOpts){
   return options.map((o, i) => {
     const out = { ...o, fo: (R >= 1 && o.odds > 1) ? Math.max(o.odds, floor2(o.odds * R)) : (o.odds || 0) };
     const po = prevOpts?.[i];
-    if (po && po.odds > 1 && o.odds > 1 && po.odds !== o.odds) { out.prev = po.odds; out.prevAt = now; }
+    if (po && po.odds > 1 && o.odds > 1 && po.odds !== o.odds) { out.prev = po.odds; out.prevAt = now; out.h = [...(po.h || [{ t: ms(po.prevAt) || Date.now() - 6e4, o: po.odds }]), { t: Date.now(), o: o.odds }].slice(-20); }
+    else if (!po && o.odds > 1 && !o.h) out.h = [{ t: Date.now(), o: o.odds }];
     return out;
   });
 }
@@ -322,7 +354,7 @@ function statsBlock(it){
     const m = it.m, idx = orderIdx(m), tot = m.options.reduce((s,o) => s + (o.tl||0), 0), mx = Math.max(0, ...m.options.map(o => o.tl||0));
     return `<div class="vchart">${idx.map(i => { const o = m.options[i], p = tot ? Math.round((o.tl||0) / tot * 100) : 0;
       return `<div><div class="vbar"><span>${p} %</span><i class="${tot && mx && (o.tl||0) === mx ? 'top' : ''}" style="height:${Math.max(3, Math.round(p * 0.9))}px"></i></div>
-        <div class="vl">${esc(o.label)}</div><div class="vo">${o.odds > 1 ? oddsMove(o) : '🔒'}</div>
+        <div class="vl">${esc(o.label)}</div><div class="vo">${o.odds > 1 ? oddsMove(o) : '🔒'}</div>${spark(o)}
         <div class="vs">Vsazeno<b>${fmtN(o.tl||0)} b</b>Tiketů<b>${o.n||0}×</b></div></div>`; }).join('')}</div>`;
   }
   const rows = sortRows(it).filter(r => r.status !== 'cancelled');
@@ -331,6 +363,13 @@ function statsBlock(it){
     return `<div class="srow"><div class="row sp sm"><b>${esc(r.rowLabel)}</b><span class="mut">ANO ${a.odds>1?oddsMove(a):'🔒'} · NE ${n.odds>1?oddsMove(n):'🔒'}</span></div>
       <div class="sbar">${t ? `<i class="a" style="width:${pa}%"></i><i class="n" style="width:${pn}%"></i>` : ''}</div>
       <div class="row sp sm mut"><span>ANO ${pa} % · ${fmtN(ta)} b · ${a.n||0}×</span><span>NE ${pn} % · ${fmtN(tn)} b · ${n.n||0}×</span></div></div>`; }).join('')}</div>`;
+}
+function spark(o){
+  const h = (o.h || []).filter(x => x.o > 1); if (h.length < 2) return '';
+  const W = 90, H = 26, vs = h.map(x => x.o), mn = Math.min(...vs), mx = Math.max(...vs), rg = mx - mn || 1;
+  const pts = h.map((x, i) => `${(i / (h.length - 1) * W).toFixed(1)},${(H - 3 - (x.o - mn) / rg * (H - 6)).toFixed(1)}`).join(' ');
+  const up = vs[vs.length-1] >= vs[0];
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:26px;margin-top:4px" aria-label="vývoj kurzu"><polyline points="${pts}" fill="none" stroke="${up ? '#5be39b' : '#ff6b6b'}" stroke-width="2" stroke-linejoin="round"/></svg>`;
 }
 const statsToggle = it => `<button class="btn sm out stt" data-act="stats" data-k="${esc(it.id)}">📊 ${S.showStats.has(it.id) ? 'Skrýt statistiku sázek' : 'Statistika sázek'}</button>${S.showStats.has(it.id) ? statsBlock(it) : ''}`;
 
@@ -569,7 +608,7 @@ function viewMarkets(){
   const cf = cats.includes(S.catFilter) ? S.catFilter : 'all';
   const items = cf === 'all' ? all : all.filter(i => i.rows[0].category === cf);
   const chips = cats.length ? `<div class="chips">${[['all','Vše'], ...cats.map(c => [c, c])].map(([k,t]) => `<button class="${cf===k?'on':''}" data-act="cat" data-c="${esc(k)}">${esc(t)}</button>`).join('')}</div>` : '';
-  const ban = S.cfg.suspendAll ? `<div class="banner">🔒 Sázení je momentálně pozastaveno</div>` : '';
+  const ban = (S.cfg.suspendAll ? `<div class="banner">🔒 Sázení je momentálně pozastaveno</div>` : '') + (isBlocked(me()) && !isAdmin() ? `<div class="banner">🚫 Sázení máš pozastavené${ms(me().blockUntil) ? ' do ' + fmtDate(me().blockUntil) : ''}. Můžeš si sázky jen prohlížet.</div>` : '');
   const promos = activePromos().map(p => `<button class="promo" data-act="promo" data-c="${esc(p.cat||'')}">📣 ${esc(p.text)}${ms(p.until)?`<small>platí do ${fmtDate(p.until)}</small>`:''}</button>`).join('');
   const combos = comboList().filter(c => c.active && !(ms(c.until) && ms(c.until) < Date.now()) && (c.legs||[]).every(l => M(l.m) && isLive(M(l.m))) && (cf === 'all' || (c.legs||[]).some(l => M(l.m)?.category === cf)));
   const isRec = i => i.rows[0].rec && itemStatus(i) !== 'done';
@@ -684,8 +723,10 @@ function updSlipTotals(){
   const pw = document.getElementById('pw'); if (pw) pw.textContent = fmtN(win) + ' b';
   const msgs = [], ms_ = effLimit('maxStake'), mw = effLimit('maxWin');
   if (d.combo?.maxStake && a > d.combo.maxStake) msgs.push(`<div class="warn">Max. vklad na hotovku je ${fmtN(d.combo.maxStake)} b.</div>`);
-  if (S.cfg.boostMax && d.ok.length === 1 && d.ok[0].o.boostFrom > 1 && a > S.cfg.boostMax) msgs.push(`<div class="warn">Max. vklad na zvýšený kurz je ${fmtN(S.cfg.boostMax)} b.</div>`);
+  if (effLimit('boostMax') && d.ok.length === 1 && d.ok[0].o.boostFrom > 1 && a > effLimit('boostMax')) msgs.push(`<div class="warn">Max. vklad na zvýšený kurz je ${fmtN(effLimit('boostMax'))} b.</div>`);
   if (ms_ && a > ms_) msgs.push(`<div class="warn">Max. vklad je ${fmtN(ms_)} b.</div>`);
+  const mle = a ? marketLimitErr(S.slip, a) : ''; if (mle) msgs.push(`<div class="warn">${esc(mle)}</div>`);
+  if (isBlocked(me())) msgs.push(`<div class="warn">🚫 Sázení máš momentálně pozastavené${ms(me().blockUntil) ? ' do ' + fmtDate(me().blockUntil) : ''}.</div>`);
   if (mw && win > mw) msgs.push(`<div class="warn">Max. výhra na tiket je ${fmtN(mw)} b.</div>`);
   const m = document.getElementById('slipmsg'); if (m) m.innerHTML = msgs.join('');
 }
@@ -699,8 +740,16 @@ async function placeBet(){
   if (msx && amount > msx) { $e.textContent = `Max. vklad je ${fmtN(msx)} b.`; return; }
   if (mw && amount * d.total > mw + 0.5) { $e.textContent = `Max. výhra na tiket je ${fmtN(mw)} b.`; return; }
   if (d.combo?.maxStake && amount > d.combo.maxStake) { $e.textContent = `Max. vklad na hotovku je ${fmtN(d.combo.maxStake)} b.`; return; }
-  if (S.cfg.boostMax && d.ok.length === 1 && d.ok[0].o.boostFrom > 1 && amount > S.cfg.boostMax) { $e.textContent = `Max. vklad na zvýšený kurz je ${fmtN(S.cfg.boostMax)} b.`; return; }
+  if (effLimit('boostMax') && d.ok.length === 1 && d.ok[0].o.boostFrom > 1 && amount > effLimit('boostMax')) { $e.textContent = `Max. vklad na zvýšený kurz je ${fmtN(effLimit('boostMax'))} b.`; return; }
+  if (isBlocked(me())) { $e.textContent = 'Sázení máš momentálně pozastavené.'; return; }
+  const mle = marketLimitErr(S.slip, amount); if (mle) { $e.textContent = mle; return; }
   const btn = $sheet.querySelector('[data-act="place"]'); if (btn) btn.disabled = true;
+  // zpoždění u live sázek – během čekání se kurz nesmí změnit
+  const delay = d.ok.some(l => l.m.live) ? (S.cfg.liveDelay || 0) : 0;
+  if (delay > 0) {
+    for (let k = delay; k > 0; k--) { if ($e) $e.innerHTML = `<span style="color:var(--acc)">⏳ Přijímám live sázku… ${k} s</span>`; await new Promise(r => setTimeout(r, 1000)); }
+    if ($e) $e.textContent = '';
+  }
   const seen = { ...S.seenOdds }, slip = [...S.slip], comboId = d.combo?.id || null;
   let bref = doc(collection(db,'bets'));
   if (comboId && d.combo.perUser > 0) {
@@ -714,7 +763,9 @@ async function placeBet(){
       const us = await tx.get(uref), cs = await tx.get(cref);
       const msnaps = []; for (const s of slip) msnaps.push(await tx.get(doc(db,'markets',s.m)));
       const c = { ...DEF_CFG, ...(cs.exists() ? cs.data() : {}) }, pts = us.data().points;
+      const ud = us.data();
       if (c.suspendAll) throw new Error('Sázení je pozastavené.');
+      if (isBlocked(ud)) throw new Error('Sázení máš momentálně pozastavené.');
       if (amount > pts) throw new Error('Nemáš dost bodů.');
       const legs = [], mUpd = [], oldOpts = {}, newOpts = {}, fresh = [];
       slip.forEach((s, k) => {
@@ -727,7 +778,8 @@ async function placeBet(){
         const tl = o.tl || 0; let odds = o.odds;
         if (c.dropEvery > 0 && c.dropPct > 0) { const n = Math.floor((tl + amount) / c.dropEvery) - Math.floor(tl / c.dropEvery); if (n > 0) odds = Math.max(1.01, floor2(odds * Math.pow(1 - c.dropPct, n))); }
         fresh.push({ m, i: s.i });
-        const nOpts = m.options.map((x, k2) => k2 === s.i ? { ...x, tl: tl + amount, pw: (x.pw || 0) + Math.floor(amount * o.odds), n: (x.n || 0) + 1, odds, ...(odds !== o.odds ? { prev: o.odds, prevAt: Timestamp.fromDate(new Date()) } : {}) } : x);
+        const nOpts = m.options.map((x, k2) => k2 === s.i ? { ...x, tl: tl + amount, pw: (x.pw || 0) + Math.floor(amount * o.odds), n: (x.n || 0) + 1, odds,
+          ...(odds !== o.odds ? { prev: o.odds, prevAt: Timestamp.fromDate(new Date()), h: [...(x.h || []), { t: Date.now(), o: odds }].slice(-20) } : {}) } : x);
         oldOpts[m.id] = m.options; newOpts[m.id] = nOpts; mUpd.push([sn.ref, nOpts]);
       });
       const prod = legs.reduce((p,l) => p * l.o, 1), evs = legs.map(l => l.e), bb = new Set(evs).size < evs.length;
@@ -744,7 +796,8 @@ async function placeBet(){
         if (pc > 0) { const t = floor2(Math.min(prod * (1 + pc), fairCap(fresh))); if (t > total) { bonus = pc; total = t; } }
       }
       if (total < 1.01) throw new Error('Kurz je moc nízký.');
-      const status = (c.approvalLimit > 0 && amount * total > c.approvalLimit) ? 'pending' : 'open';
+      const alim = ud.apprLimit > 0 ? ud.apprLimit : c.approvalLimit;
+      const status = (ud.apprAll === true || (alim > 0 && amount * total > alim)) ? 'pending' : 'open';
       tx.update(uref, { points: pts - amount });
       const bdata = { uid:S.user.uid, name:S.profile.name, no: 'T' + Math.random().toString(36).slice(2,8).toUpperCase(), legs, mids: legs.map(l=>l.m), ev: evs, grp: legs.map(l=>l.g), odds: total, bb, amount, status, payout: 0, createdAt: serverTimestamp() };
       if (cb) { bdata.combo = comboId; bdata.ctitle = cb.title; }
@@ -768,15 +821,16 @@ function renderWait(){
   const b = S.myBets.find(x => x.id === S.ctx.betId), st = b ? betSt(b) : 'pending';
   let inner;
   if (st === 'pending') inner = `<div class="pendbox"><div class="spin"></div>Tiket schvaluje bookmaker. Počkej prosím.</div>`;
+  else if (st === 'offer') inner = '';
   else if (st === 'rejected') inner = `<div class="warn" style="font-size:15px;font-weight:700">❌ Bookmaker tiket zamítl. Body ti byly vráceny.</div>`;
   else inner = `<div class="note" style="background:#173d2b;color:var(--grn);font-size:15px;font-weight:700">✅ Tiket přijat!</div>`;
-  $sheet.innerHTML = `<h1>Tiket</h1>${inner}${b ? ticketCard(b, false, true) : ''}<button class="btn full" style="margin-top:8px" data-act="close">${st === 'pending' ? 'Zavřít (tiket čeká dál)' : 'Hotovo'}</button>`;
+  $sheet.innerHTML = `<h1>Tiket</h1>${inner}${b ? ticketCard(b, false, st !== 'offer') : ''}<button class="btn full" style="margin-top:8px" data-act="close">${st === 'pending' ? 'Zavřít (tiket čeká dál)' : st === 'offer' ? 'Rozhodnu se později' : 'Hotovo'}</button>`;
   $modal.classList.add('show');
 }
 
 /* ================== TIKETY ================== */
 function cashValue(b){
-  if (!S.cfg.cashout || S.cfg.suspendAll || b.uid !== S.user?.uid) return 0;
+  if (!S.cfg.cashout || S.cfg.suspendAll || b.uid !== S.user?.uid || me().cashMode === 'off') return 0;
   const st = betSt(b); if (st !== 'open') return 0;
   if (!b.legs.some(l => l.st === 'open') || b.legs.some(l => l.st === 'lost')) return 0;
   let den = 1;
@@ -786,7 +840,8 @@ function cashValue(b){
     const m = M(l.m); if (!m || !optAvail(m, l.i)) return 0;
     den *= m.options[l.i].odds;
   }
-  return Math.floor(b.amount * b.odds / den * (1 - S.cfg.cashMargin) + 1e-9);
+  const cm = me().cashMode === 'bad' ? (me().cashM ?? 0.3) : S.cfg.cashMargin;
+  return Math.floor(b.amount * b.odds / den * (1 - cm) + 1e-9);
 }
 function ticketCard(b, showName, plain){
   const st = betSt(b);
@@ -800,15 +855,17 @@ function ticketCard(b, showName, plain){
     <div class="row sp"><div class="row gap4 wrap"><span class="badge ${st==='pending'?'y':''}">${BET_TXT[st]}</span>${b.combo?`<span class="badge soon">🔥 ${esc(b.ctitle||'Hotovka')}</span>`:b.legs.length>1?`<span class="badge ${b.bb?'bb':''}">${b.bb?'🧩 BB':'AKO'}</span>`:''}${b.bonus?`<span class="badge open">🎁 +${pct(b.bonus)} %</span>`:''}</div><span class="mut">#${esc(b.no||b.id.slice(0,6))} · ${fmtDate(b.createdAt)}</span></div>
     ${showName?`<div class="b" style="margin-top:6px">👤 ${esc(b.name)}</div>`:''}
     ${st==='pending' && !plain ? `<div class="pendbox"><div class="spin"></div>Tiket schvaluje bookmaker. Počkej prosím.</div>` : ''}
+    ${st==='offer' ? `<div class="pendbox" style="display:block">💬 Bookmaker nabízí: vklad <b>${fmtN(b.offerAmount)} b</b> za kurz <b>${fmtOdds(b.offerOdds)}</b> → možná výhra <b>${fmtN(Math.floor(b.offerAmount * b.offerOdds + 1e-9))} b</b>
+      ${!showName && b.uid === S.user?.uid ? `<div class="row" style="margin-top:8px"><button class="btn no full" data-act="offno" data-b="${b.id}">Odmítnout</button><button class="btn ok full" data-act="offyes" data-b="${b.id}">Přijmout</button></div>` : '<div class="mut" style="color:#333">Čeká se na hráče…</div>'}</div>` : ''}
     <div style="margin-top:6px">${b.legs.map(l => `<div class="leg"><span>${LEG_ICON[l.st]||'⏳'}</span><div><div class="mut">${esc(l.t)}</div><div class="b">${esc(l.lbl)}</div></div><span class="b">${fmtOdds(l.o)}</span></div>`).join('')}</div>
     <div class="row sp" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><span class="mut">Kurz <b style="color:var(--txt)">${fmtOdds(b.odds)}</b> · vklad <b style="color:var(--txt)">${fmtN(b.amount)} b</b></span></div>
     <div class="row sp" style="margin-top:4px"><span class="b">${res}</span>${plain?'':`<button class="btn sm out" data-act="share" data-b="${b.id}">📤</button>`}</div>
     ${cv > 0 ? `<button class="btn ok full" style="margin-top:10px" data-act="cash" data-b="${b.id}" data-v="${cv}">💸 Cash-out ${fmtN(cv)} b</button>` : ''}
-    ${showName && ['open','pending'].includes(b.status) ? `<button class="btn sm no" style="margin-top:8px" data-act="storno" data-b="${b.id}">Stornovat tiket</button>` : ''}</div>`;
+    ${showName && ['open','pending','offer'].includes(b.status) ? `<button class="btn sm no" style="margin-top:8px" data-act="storno" data-b="${b.id}">Stornovat tiket</button>` : ''}</div>`;
 }
 function viewMine(){
   if (!S.myBets.length) return `<div class="empty">Ještě nemáš žádný tiket.</div>`;
-  const live = S.myBets.filter(b => ['open','pending'].includes(b.status)), done = S.myBets.filter(b => !['open','pending'].includes(b.status));
+  const live = S.myBets.filter(b => ['open','pending','offer'].includes(b.status)), done = S.myBets.filter(b => !['open','pending','offer'].includes(b.status));
   return `${live.length?`<h2>Ve hře</h2>${live.map(b=>ticketCard(b)).join('')}`:''}${done.length?`<h2>Vyhodnocené</h2>${done.slice(0,40).map(b=>ticketCard(b)).join('')}`:''}`;
 }
 function viewBoard(){
@@ -832,7 +889,8 @@ async function cashOut(bid, shown){
         if (m.status !== 'open' || m.suspended || o.locked || !(o.odds > 1) || (ms(m.closesAt) && ms(m.closesAt) < Date.now())) throw new Error('Cash-out je teď zamčený.');
         den *= o.odds;
       }
-      const val = Math.floor(b.amount * b.odds / den * (1 - c.cashMargin) + 1e-9);
+      const ud = us.data(); if (ud.cashMode === 'off') throw new Error('Cash-out teď nejde.');
+      const val = Math.floor(b.amount * b.odds / den * (1 - (ud.cashMode === 'bad' ? (ud.cashM ?? 0.3) : c.cashMargin)) + 1e-9);
       if (val < 1) throw new Error('Cash-out teď nejde.');
       if (val < shown) throw new Error(`Hodnota se změnila na ${fmtN(val)} b – zkus to znovu.`);
       tx.update(bref, { status:'cashout', payout: val, cashedAt: serverTimestamp() });
@@ -840,6 +898,22 @@ async function cashOut(bid, shown){
       return val;
     });
     toast(`Vyplaceno ${fmtN(v)} b 💸`);
+  } catch(e){ toast(e.code ? errTxt(e) : e.message, true); }
+}
+
+async function answerOffer(bid, yes){
+  try {
+    await runTransaction(db, async tx => {
+      const bref = doc(db,'bets',bid), uref = doc(db,'users',S.user.uid);
+      const bs = await tx.get(bref), us = await tx.get(uref), b = bs.data();
+      if (b.status !== 'offer') throw new Error('Nabídka už neplatí.');
+      const pts = us.data().points;
+      if (yes) { const refund = b.amount - b.offerAmount;
+        tx.update(bref, { status:'open', amount: b.offerAmount, odds: b.offerOdds });
+        if (refund > 0) tx.update(uref, { points: pts + refund, lastOffer: bid }); }
+      else { tx.update(bref, { status:'rejected', payout: b.amount }); tx.update(uref, { points: pts + b.amount, lastOffer: bid }); }
+    });
+    toast(yes ? 'Nabídka přijata ✅' : 'Nabídka odmítnuta, body vráceny'); if (S.ctx?.type === 'wait') closeModal();
   } catch(e){ toast(e.code ? errTxt(e) : e.message, true); }
 }
 
@@ -897,13 +971,39 @@ function pendingCard(b){
     ${b.legs.map(l => `<div class="row sp sm" style="margin-top:4px"><span class="mut">${esc(l.t)}</span><span class="b">${esc(l.lbl)} ${fmtOdds(l.o)}</span></div>`).join('')}
     <div class="row sp" style="margin-top:6px"><span>Kurz <b>${fmtOdds(b.odds)}</b> · vklad <b>${fmtN(b.amount)} b</b></span></div>
     <div class="b" style="margin-top:4px;color:var(--acc);font-size:18px">možná výhra ${fmtN(possWin(b))} b</div>
-    <div class="row" style="margin-top:10px"><button class="btn no full" data-act="breject" data-b="${b.id}">✕ Zamítnout</button><button class="btn ok full" data-act="bapprove" data-b="${b.id}">✓ Schválit</button></div></div>`;
+    <div class="row" style="margin-top:10px"><button class="btn no full" data-act="breject" data-b="${b.id}">✕ Zamítnout</button><button class="btn full" data-act="boffer" data-b="${b.id}">↔ Nabídka</button><button class="btn ok full" data-act="bapprove" data-b="${b.id}">✓ Schválit</button></div></div>`;
+}
+function openOffer(bid){
+  const b = S.allBets.find(x => x.id === bid); if (!b) return;
+  openModal(`<h1>↔ Protinabídka</h1><div class="mut">${esc(b.name)} · vklad ${fmtN(b.amount)} b · kurz ${fmtOdds(b.odds)} · výhra ${fmtN(possWin(b))} b</div>
+    <label>Přijmu vklad max.</label><input id="of_a" type="number" inputmode="numeric" value="${Math.max(1, Math.floor(b.amount / 2))}">
+    <label>Za kurz</label><input id="of_o" inputmode="decimal" value="${fmtOdds(b.odds)}">
+    <div class="note" id="of_w"></div>
+    <div class="mut" style="margin-top:6px">Hráč nabídku přijme, nebo odmítne (vklad se mu vrátí). Bez odpovědi se po ${S.cfg.offerTtl || 3} min sama zruší.</div>
+    <div class="err" id="of_e"></div>
+    <div class="row" style="margin-top:10px"><button class="btn full" data-act="close">Zpět</button><button class="btn pri full" data-act="offsend">Poslat nabídku</button></div>`, { keep:true, bid });
+  ofUpd();
+}
+function ofUpd(){ const a = parseInt(document.getElementById('of_a')?.value) || 0, o = parseNum(document.getElementById('of_o')?.value) || 0, w = document.getElementById('of_w');
+  if (w) w.textContent = `Možná výhra ${fmtN(Math.floor(a * o + 1e-9))} b`; }
+async function sendOffer(){
+  const b = S.allBets.find(x => x.id === S.ctx.bid), $e = document.getElementById('of_e');
+  const a = parseInt(document.getElementById('of_a').value), o = floor2(parseNum(document.getElementById('of_o').value));
+  if (!b || b.status !== 'pending' || leftMs(b) <= 0) { $e.textContent = 'Tiket už byl přijat.'; return; }
+  if (!(a >= 1 && a <= b.amount)) { $e.textContent = `Vklad musí být 1–${b.amount} b.`; return; }
+  if (!(o >= 1.01 && o <= b.odds)) { $e.textContent = `Kurz musí být 1,01–${fmtOdds(b.odds)}.`; return; }
+  if (a === b.amount && o === b.odds) { $e.textContent = 'To je stejné jako původní tiket – dej rovnou Schválit.'; return; }
+  try { const bt = writeBatch(db);
+    bt.update(doc(db,'bets',b.id), { status:'offer', offerAmount:a, offerOdds:o, offerAt: serverTimestamp(), ca: a });
+    uncountOps(b, b.amount - a, false).forEach(([r, d]) => bt.update(r, d));
+    await bt.commit(); logA('Protinabídka', `${b.name} #${b.no}: ${b.amount} b @ ${fmtOdds(b.odds)} → ${a} b @ ${fmtOdds(o)}`); closeModal(); toast('Nabídka odeslána hráči ↔'); }
+  catch(e){ $e.textContent = errTxt(e); }
 }
 const fmtLeft = l => { const s = Math.ceil(l/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
 
 function viewAdmin(){
   const sub = S.adminSub, pend = pendingBets();
-  const subs = [['events','Události'],['risk','Riziko'],['players','Hráči'],['feed','Tikety'],['stats','Statistiky'],['settings','Nastavení']];
+  const subs = [['events','Události'],['risk','Riziko'],['players','Hráči'],['feed','Tikety'],['stats','Statistiky'],['log','Log'],['settings','Nastavení']];
   let inner = '';
   if (sub === 'events') {
     const items = sortItems(buildItems(S.markets)), act = items.filter(i => itemStatus(i) !== 'done'), old = items.filter(i => itemStatus(i) === 'done').sort((a,b) => itemSettled(b) - itemSettled(a));
@@ -918,17 +1018,19 @@ function viewAdmin(){
     inner = [...S.users].sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(u => {
       const bs = S.allBets.filter(b=>b.uid===u.id), open = bs.filter(b=>['open','pending'].includes(b.status));
       const ps = playerStats(u.id);
-      const lim = [u.maxStake>0?`max vklad ${fmtN(u.maxStake)}`:'', u.maxWin>0?`max výhra ${fmtN(u.maxWin)}`:''].filter(Boolean).join(' · ');
-      return `<div class="card"><div class="row sp"><span class="b">${esc(u.name)}${ps.sharp?' <span class="badge susp">⚠️ ostrý hráč</span>':''}</span><span class="pts" style="padding:3px 10px">${fmtN(u.points)} b</span></div>
+      const lim = [isBlocked(u)?'🚫 blokován':'', u.factor>0&&u.factor<1?`✂️ limity ${Math.round(u.factor*100)} %`:'', u.maxStake>0?`max vklad ${fmtN(u.maxStake)}`:'', u.maxWin>0?`max výhra ${fmtN(u.maxWin)}`:'',
+        u.apprAll?'⏳ schvaluju vše':u.apprLimit>0?`⏳ nad ${fmtN(u.apprLimit)}`:'', u.cashMode==='off'?'💸 bez cash-outu':u.cashMode==='bad'?`💸 cash-out −${pct(u.cashM??0.3)} %`:''].filter(Boolean).join(' · ');
+      return `<div class="card"><div class="row sp"><span class="b">${esc(u.name)}${(ps.sharp||u.sharp)?' <span class="badge susp">⚠️ ostrý hráč</span>':''}</span><span class="pts" style="padding:3px 10px">${fmtN(u.points)} b</span></div>
         <div class="mut">${bs.length} tiketů · ${open.length} ve hře (${fmtN(open.reduce((s,b)=>s+b.amount,0))} b)${lim?` · <span style="color:var(--acc)">${lim}</span>`:''}</div>
         <div class="row" style="margin-top:8px"><button class="btn sm" data-act="uprof" data-u="${u.id}">📊</button><button class="btn sm" data-act="ubets" data-u="${u.id}">🧾 Tikety</button><button class="btn sm" data-act="upts" data-u="${u.id}">± Body</button><button class="btn sm" data-act="ulim" data-u="${u.id}">🚧 Limity</button></div></div>`;
     }).join('') || '<div class="empty">Zatím nikdo.</div>';
   } else if (sub === 'feed') {
-    const f = S.feedFilter, fl = { pending: b => betSt(b)==='pending', open: b => ['open','pending'].includes(b.status), done: b => !['open','pending'].includes(b.status), all: () => true };
+    const f = S.feedFilter, fl = { pending: b => ['pending','offer'].includes(betSt(b)), open: b => ['open','pending','offer'].includes(b.status), done: b => !['open','pending'].includes(b.status), all: () => true };
     const list = S.allBets.filter(fl[f]);
     inner = `<div class="chips">${[['pending','Ke schválení'],['open','Ve hře'],['done','Vyhodnocené'],['all','Vše']].map(([k,t])=>`<button class="${f===k?'on':''}" data-act="ffilter" data-f="${k}">${t}</button>`).join('')}</div>
       ${list.length ? list.slice(0,80).map(b=>ticketCard(b,true)).join('') : '<div class="empty">Nic tu není.</div>'}`;
   } else if (sub === 'stats') inner = viewStats();
+  else if (sub === 'log') inner = viewLog();
   else inner = viewSettings();
   return `<button class="btn full ${S.cfg.suspendAll?'ok':'no'}" style="margin-bottom:12px;font-size:16px" data-act="suspall">${S.cfg.suspendAll?'▶ Obnovit sázení (vše je pozastaveno)':'⏸ Pozastavit všechny sázky'}</button>
     ${pend.length?`<h2>⏳ Ke schválení (${pend.length})</h2>${pend.map(pendingCard).join('')}`:''}
@@ -968,6 +1070,9 @@ function viewStats(){
   const turn = bs.reduce((s,b)=>s+b.amount,0), dTurn = done.reduce((s,b)=>s+b.amount,0), paid = done.reduce((s,b)=>s+(b.payout||0),0);
   const profit = dTurn - paid, liab = live.reduce((s,b)=>s+possWin(b),0);
   const byU = {}; done.forEach(b => { byU[b.name] = (byU[b.name]||0) + b.amount - (b.payout||0); });
+  const typeOf = b => b.combo ? '🔥 Hotovky' : b.legs.length === 1 ? '🎯 Sólo' : b.bb ? '🧩 Betbuildery' : '🎫 AKO';
+  const agg = key => { const o = {}; bs.forEach(b => { const k = key(b), r = (o[k] = o[k] || { n:0, t:0, dt:0, p:0 }); r.n++; r.t += b.amount; if (['won','lost','cashout'].includes(b.status)) { r.dt += b.amount; r.p += b.amount - (b.payout||0); } }); return o; };
+  const aggTbl = o => Object.entries(o).sort((a,b) => b[1].t - a[1].t).map(([k, r]) => `<tr><td>${esc(k)}<div class="mut">${r.n} tiketů · obrat ${fmtN(r.t)} b</div></td><td class="b ${r.p<0?'neg':'pos'}">${fmtS(r.p)} b<div class="mut">${r.dt ? (r.p / r.dt * 100).toFixed(0) : 0} %</div></td></tr>`).join('');
   const byE = {}; done.forEach(b => { const k = b.legs.length>1 ? (b.bb?'🧩 Betbuildery':'AKO tikety') : b.legs[0].t.split(' – ')[0]; byE[k] = (byE[k]||0) + b.amount - (b.payout||0); });
   const tbl = o => Object.entries(o).sort((a,b)=>a[1]-b[1]).map(([k,v]) => `<tr><td>${esc(k)}</td><td class="b ${v<0?'neg':'pos'}">${fmtS(v)} b</td></tr>`).join('');
   const days = {}; done.forEach(b => { const t = ms(b.settledAt) || ms(b.cashedAt) || ms(b.createdAt) || Date.now(), k = new Date(t).toDateString(); (days[k] = days[k] || { t, v:0 }).v += b.amount - (b.payout||0); });
@@ -982,7 +1087,8 @@ function viewStats(){
       <div><span class="mut">Ve hře (max. výplata)</span><b>${fmtN(liab)} b</b></div>
       <div><span class="mut">Tiketů</span><b>${bs.length}</b></div>
       <div><span class="mut">AKO / BB podíl</span><b>${bs.length ? Math.round(bs.filter(b=>b.legs.length>1).length/bs.length*100) : 0} %</b></div></div>
-    <h2>Kdo tě nejvíc obírá</h2><div class="card"><table class="tbl">${tbl(byU) || '<tr><td class="mut">Zatím nic</td></tr>'}</table></div>
+    <h2>Podle typu tiketu</h2><div class="card"><table class="tbl">${aggTbl(agg(typeOf)) || '<tr><td class="mut">Zatím nic</td></tr>'}</table><div class="mut" style="margin-top:6px">Vpravo tvůj zisk a marže (hold).</div></div>
+    <h2>Podle hráčů</h2><div class="card"><table class="tbl">${aggTbl(agg(b => b.name)) || '<tr><td class="mut">Zatím nic</td></tr>'}</table></div>
     <h2>Zisk podle sázek</h2><div class="card"><table class="tbl">${tbl(byE) || '<tr><td class="mut">Zatím nic</td></tr>'}</table></div>`;
 }
 /* ---- nastavení ---- */
@@ -1011,8 +1117,14 @@ function viewSettings(){
       ${f('s_inm','Max. vrácená částka', c.insMax||0, '0 = celý vklad.', 'b')}</div>
     <div class="card"><div class="b">🔥 Zvýšené kurzy</div>
       ${f('s_bm','Max. vklad na zvýšený kurz', c.boostMax||0, '0 = bez limitu. Dobu platnosti boostu nastavíš v live editoru kurzů.', 'b')}</div>
-    <div class="card"><div class="b">🔔 Upozornění na riziko</div>
-      ${f('s_ra','Pošli notifikaci, když bys u jedné sázky mohl prodělat víc než', c.riskAlert||0, '0 = vypnuto. Počítá se z vsazených bodů (odhad).', 'b')}</div>
+    <div class="card"><div class="b">🔔 Riziko</div>
+      ${f('s_ra','Pošli notifikaci, když bys u jedné sázky mohl prodělat víc než', c.riskAlert||0, '0 = vypnuto. Počítá se z vsazených bodů (odhad).', 'b')}
+      ${f('s_as','Automaticky pozastavit sázku, když bys mohl prodělat víc než', c.autoSuspend||0, '0 = vypnuto. Sázka se zamkne a přijde ti notifikace.', 'b')}
+      ${f('s_mm','Max. vklad jednoho hráče do jedné sázky (součet tiketů)', c.maxMarket||0, '0 = bez limitu. Brání rozdělení vkladu na víc tiketů.', 'b')}</div>
+    <div class="card"><div class="b">⚡ Live sázky a kurzy</div>
+      ${f('s_ld','Zpoždění přijetí live sázky', c.liveDelay ?? 5, 'Když se během čekání změní kurz nebo sázku zamkneš, tiket neprojde.', 's')}
+      <label class="ck"><input type="checkbox" id="s_lad" ${c.ladder!==false?'checked':''}> Standardní stupnice kurzů (1,50 · 1,51 … 2,02 · 2,04 … 3,05 · 3,10 …)</label>
+      ${f('s_ot','Protinabídka platí', c.offerTtl ?? 3, 'Když hráč neodpoví, nabídka se zruší a vklad vrátí.', 'min')}</div>
     <div class="card"><div class="b">🕐 Zvonění (rychlé uzávěrky)</div>
       <label>Časy oddělené čárkou</label><input id="s_bells" value="${esc(c.bells||'')}" placeholder="8:00, 8:55, 9:55">
       <div class="mut" style="margin-top:4px">Ve formuláři sázky se ukážou jako tlačítka pro uzávěrku.</div></div>
@@ -1034,8 +1146,10 @@ async function saveSettings(){
     riskAlert: Math.max(0, Math.round(g('s_ra'))), bells: document.getElementById('s_bells').value.replace(/[^0-9:, ]/g,''),
     akoOn: document.getElementById('s_ako').checked, akoN1: Math.max(2, Math.round(g('s_an1')) || 4), akoP1: Math.min(0.5, g('s_ap1')/100), akoN2: Math.max(2, Math.round(g('s_an2')) || 6), akoP2: Math.min(0.5, g('s_ap2')/100), akoMin: Math.max(1.01, g('s_amin') || 1.2),
     insOn: document.getElementById('s_ins').checked, insMinLegs: Math.max(2, Math.round(g('s_inl')) || 4), insMinOdds: Math.max(1.01, g('s_ino') || 1.3), insMax: Math.max(0, Math.round(g('s_inm'))),
-    boostMax: Math.max(0, Math.round(g('s_bm'))) };
-  try { await setDoc(doc(db,'config','main'), { ...S.cfg, ...data }); toast('Nastavení uloženo ✅'); } catch(e){ toast(errTxt(e), true); }
+    boostMax: Math.max(0, Math.round(g('s_bm'))),
+    autoSuspend: Math.max(0, Math.round(g('s_as'))), maxMarket: Math.max(0, Math.round(g('s_mm'))), liveDelay: Math.min(30, Math.max(0, Math.round(g('s_ld')))),
+    ladder: document.getElementById('s_lad').checked, offerTtl: Math.max(1, Math.round(g('s_ot')) || 3) };
+  try { await setDoc(doc(db,'config','main'), { ...S.cfg, ...data }); logA('Nastavení', 'Uloženo nastavení'); toast('Nastavení uloženo ✅'); } catch(e){ toast(errTxt(e), true); }
 }
 
 /* ---- notifikace + schvalování ---- */
@@ -1052,6 +1166,14 @@ async function housekeeping(){
   try { for (const b of S.allBets.filter(b => b.status === 'pending' && leftMs(b) <= 0)) await updateDoc(doc(db,'bets',b.id), { status:'open', autoAccepted:true }).catch(()=>{});
     for (const m of S.markets.filter(m => isLive(m) && m.options.some(o => o.odds > 1 && o.fo === undefined) && !m.options.some(boostExpired)))
       await updateDoc(doc(db,'markets',m.id), { options: withFair(m.options) }).catch(()=>{});
+    const ttl = (S.cfg.offerTtl || 3) * 60000;
+    for (const b of S.allBets.filter(b => b.status === 'offer' && ms(b.offerAt) && Date.now() - ms(b.offerAt) > ttl)) {
+      const bt = writeBatch(db); bt.update(doc(db,'bets',b.id), { status:'rejected', payout:b.amount, voidedAt: serverTimestamp(), unc:true });
+      bt.update(doc(db,'users',b.uid), { points: increment(b.amount) }); uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+      await bt.commit().catch(()=>{}); logA('Nabídka vypršela', `${b.name} #${b.no}`); }
+    for (const b of S.allBets.filter(b => ['rejected','void'].includes(b.status) && !b.unc)) {
+      const bt = writeBatch(db); bt.update(doc(db,'bets',b.id), { unc:true }); uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+      await bt.commit().catch(()=>{}); }
     for (const m of S.markets.filter(m => isLive(m) && m.options.some(boostExpired)))
       await updateDoc(doc(db,'markets',m.id), { options: withFair(m.options.map(o => boostExpired(o) ? { ...o, odds: o.boostFrom, boostFrom: 0, boostUntil: null } : o), m.options) }).catch(()=>{});
   } finally { hkBusy = false; }
@@ -1061,17 +1183,20 @@ setInterval(() => {
   let expired = false;
   document.querySelectorAll('.cd[data-dl]').forEach(el => { const l = +el.dataset.dl - Date.now(); if (l <= 0) expired = true; el.textContent = fmtLeft(Math.max(0,l)); });
   if (S.ctx?.type === 'wait') { const b = S.myBets.find(x => x.id === S.ctx.betId); if (b && b.status === 'pending' && leftMs(b) <= 0) renderWait(); }
+  if (isAdmin() && S.allBets.some(b => b.status === 'offer' && ms(b.offerAt) && Date.now() - ms(b.offerAt) > (S.cfg.offerTtl || 3) * 60000)) housekeeping();
   if (expired) { if (isAdmin()) housekeeping(); render(); }
 }, 1000);
-async function approve(bid){ try { await updateDoc(doc(db,'bets',bid), { status:'open', approvedAt: serverTimestamp() }); toast('Schváleno ✓'); } catch(e){ toast(errTxt(e), true); } }
+async function approve(bid){ const b = S.allBets.find(x => x.id === bid);
+  try { await updateDoc(doc(db,'bets',bid), { status:'open', approvedAt: serverTimestamp() }); logA('Schváleno', b ? `${b.name} #${b.no} · ${b.amount} b @ ${fmtOdds(b.odds)}` : bid); toast('Schváleno ✓'); } catch(e){ toast(errTxt(e), true); } }
 async function refundBet(bid, status){
   const b = S.allBets.find(x=>x.id===bid); if (!b) return;
   if (status === 'rejected' && (b.status !== 'pending' || leftMs(b) <= 0)) { toast('Tiket už byl přijat.', true); return; }
-  if (!['open','pending'].includes(b.status)) { toast('Tiket už je vyhodnocený.', true); return; }
+  if (!['open','pending','offer'].includes(b.status)) { toast('Tiket už je vyhodnocený.', true); return; }
   try { const bt = writeBatch(db);
-    bt.update(doc(db,'bets',bid), { status, payout:b.amount, voidedAt: serverTimestamp() });
+    bt.update(doc(db,'bets',bid), { status, payout:b.amount, voidedAt: serverTimestamp(), unc:true });
     bt.update(doc(db,'users',b.uid), { points: increment(b.amount) });
-    await bt.commit(); toast(status === 'rejected' ? 'Zamítnuto, body vráceny' : 'Tiket stornován, body vráceny'); } catch(e){ toast(errTxt(e), true); }
+    uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+    await bt.commit(); logA(status === 'rejected' ? 'Zamítnuto' : 'Storno', `${b.name} #${b.no} · ${b.amount} b @ ${fmtOdds(b.odds)}`); toast(status === 'rejected' ? 'Zamítnuto, body vráceny' : 'Tiket stornován, body vráceny'); } catch(e){ toast(errTxt(e), true); }
 }
 
 /* ---- vyhodnocení ---- */
@@ -1135,7 +1260,7 @@ function openSettle(it){
 }
 
 /* ---- live úprava kurzů ---- */
-const stepOf = o => o < 1.5 ? 0.01 : o < 3 ? 0.05 : o < 6 ? 0.1 : 0.25;
+
 function openLive(m){
   const it = itemOf(m), rows = it.rows.filter(isLive);
   const cell = (r, i) => { const o = r.options[i];
@@ -1176,7 +1301,10 @@ async function saveLive(){
   const err = it.type === 'g' ? surebetErr('group', all.filter(u => isLive(u.r)).map(u => ({ label:u.r.rowLabel, A:u.options[0], N:u.options[1] })), { exclusive: it.exclusive, nobody: it.nobody })
     : surebetErr('single', all[0].options);
   if (err) { $e.textContent = err; return; }
-  try { const bt = writeBatch(db); upd.forEach(u => bt.update(doc(db,'markets',u.r.id), { options: withFair(u.options, u.r.options), suspended: u.suspended })); await bt.commit(); closeModal(); toast('Kurzy uloženy ⚡'); }
+  const chg = upd.flatMap(u => u.options.map((o, i) => { const po = u.r.options[i]; const lab = it.type === 'g' ? `${u.r.rowLabel} ${o.label}` : o.label;
+    return po.odds !== o.odds ? `${lab} ${fmtOdds(po.odds)}→${fmtOdds(o.odds)}` : (!!po.locked !== !!o.locked ? `${lab} ${o.locked ? '🔒' : 'odemčeno'}` : ''); }).concat(!!u.r.suspended !== u.suspended ? [`${u.r.rowLabel || ''} ${u.suspended ? '⏸' : '▶'}`] : [])).filter(Boolean);
+  try { const bt = writeBatch(db); upd.forEach(u => bt.update(doc(db,'markets',u.r.id), { options: withFair(u.options, u.r.options), suspended: u.suspended })); await bt.commit();
+    if (chg.length) logA('Kurzy', `${it.type==='g'?it.title:it.m.title}: ${chg.join(', ')}`); closeModal(); toast('Kurzy uloženy ⚡'); }
   catch(e){ $e.textContent = errTxt(e); }
 }
 
@@ -1192,6 +1320,8 @@ function commonFields(src){
   return `<label>Kategorie (hráči si podle ní filtrují)</label><input id="f_c" list="catl" placeholder="Ekonomika" value="${esc(src?.category||'')}"><datalist id="catl">${[...new Set(S.markets.map(m => m.category).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join('')}</datalist>
     <label>Uzávěrka sázek (nepovinné) – sázky se samy zavřou</label><input id="f_d" type="datetime-local" value="${toLocalInput(src?.closesAt)}">
     <div class="chips wr" style="margin-top:6px">${[5,10,15].map(m => `<button data-act="setclose" data-m="${m}">+${m} min</button>`).join('')}${bellTimes().map(([b,t]) => `<button data-act="setclose" data-t="${t}">🔔 ${b}</button>`).join('')}<button data-act="setclose" data-t="0">Bez uzávěrky</button></div>
+    <div class="row"><div style="flex:1"><label>Marže této sázky</label><div class="row"><input id="f_mg" type="number" inputmode="decimal" value="${pct(src?.margin ?? S.cfg.margin)}"><span class="mut">%</span></div></div></div>
+    <label class="ck"><input type="checkbox" id="f_live" ${src?.live?'checked':''}><span>⚡ Live sázka<br><span class="mut">Tiket se přijme až po ${S.cfg.liveDelay ?? 5} s – když mezitím změníš kurz nebo zamkneš, neprojde.</span></span></label>
     <label>Řazení možností pro hráče</label><select id="f_sort">${[['','Vlastní pořadí'],['asc','Od nejnižšího kurzu'],['desc','Od nejvyššího kurzu']].map(([k,t]) => `<option value="${k}" ${(src?.optSort||'')===k?'selected':''}>${t}</option>`).join('')}</select>
     <label class="ck"><input type="checkbox" id="f_bb" ${src?.bb?'checked':''}><span>🧩 Povolit betbuilder<br><span class="mut">Hráči můžou kombinovat víc sázek z této události (i s jinými sázkami se stejným názvem události).</span></span></label>
     <label>Událost pro betbuilder (stejný název = jde kombinovat)</label><input id="f_ev" list="evl" placeholder="např. Ekonomika 3. 11." value="${esc(src?.evName||'')}"><datalist id="evl">${evList().map(e=>`<option value="${esc(e)}">`).join('')}</datalist>`;
@@ -1208,7 +1338,8 @@ function openGroupForm(gid, dup){
     const sumAll = rows.reduce((s,r) => s + r.p, 0);
     rows = rows.filter(r => !winners.has(r.label));
     const sumRem = rows.reduce((s,r) => s + r.p, 0);
-    if (sumAll > 0 && sumRem > 0) rows = rows.map(r => { const p = Math.min(0.95, r.p * sumAll / sumRem); return { ...r, p, a: oddsFromP(p, S.cfg.margin), n: oddsFromP(1 - p, S.cfg.margin) }; });
+    const mg = src?.margin ?? S.cfg.margin;
+    if (sumAll > 0 && sumRem > 0) rows = rows.map(r => { const p = Math.min(0.95, r.p * sumAll / sumRem); return { ...r, p, a: oddsFromP(p, mg), n: oddsFromP(1 - p, mg) }; });
   }
   openModal(`<h1>${g&&!dup?'Upravit tabulku':'Nová tabulka Ano / Ne'}</h1>
     <label>Otázka</label><input id="f_t" placeholder="Kdo bude zkoušen z ekonomiky jako první?" value="${esc(dup === 'next' ? nextTitle(g.title) : (g?.title||''))}">
@@ -1219,7 +1350,7 @@ function openGroupForm(gid, dup){
       <textarea id="f_names" style="margin-top:6px" placeholder="Jména – každé na nový řádek"></textarea>
       <div class="row wrap" style="margin-top:6px"><button class="btn sm" data-act="gaddnames">Přidat ze seznamu</button><button class="btn sm" data-act="gaddplayers">👥 Všichni hráči</button></div>
       <div class="row" style="margin-top:6px"><input id="f_from" inputmode="numeric" placeholder="od"><input id="f_to" inputmode="numeric" placeholder="do"><button class="btn sm" data-act="gaddnums">Čísla</button></div></div>
-    <div class="grp"><div class="mut b">⚖️ Pravděpodobnosti → kurzy (marže ${pct(S.cfg.margin)} %)</div>
+    <div class="grp"><div class="mut b">⚖️ Pravděpodobnosti → kurzy (podle marže výše)</div>
       <div class="row" style="margin-top:6px"><input id="f_tot" inputmode="decimal" placeholder="součet %, např. 100"><button class="btn sm" data-act="geven">Rozdělit rovnoměrně</button></div>
       <div class="mut" style="margin-top:4px">Napiš % u řádku a kurzy se dopočítají. Kurz můžeš i ručně přepsat.</div></div>
     <label>Řádky a kurzy</label>
@@ -1236,12 +1367,12 @@ function gAdd(labels){
 function rowRecalc(row){
   const p = parseNum(row.querySelector('.rp').value) / 100;
   if (!(p > 0 && p < 1)) return;
-  row.querySelector('.ra').value = fmtOdds(oddsFromP(p, S.cfg.margin));
-  row.querySelector('.rn').value = fmtOdds(oddsFromP(1 - p, S.cfg.margin));
+  row.querySelector('.ra').value = fmtOdds(oddsFromP(p, formMargin()));
+  row.querySelector('.rn').value = fmtOdds(oddsFromP(1 - p, formMargin()));
 }
 function readCommon(){
   const d = document.getElementById('f_d').value, evName = document.getElementById('f_ev').value.trim();
-  return { category: document.getElementById('f_c').value.trim(), closesAt: d ? Timestamp.fromDate(new Date(d)) : null, bb: document.getElementById('f_bb').checked, evName, optSort: document.getElementById('f_sort').value };
+  return { category: document.getElementById('f_c').value.trim(), closesAt: d ? Timestamp.fromDate(new Date(d)) : null, bb: document.getElementById('f_bb').checked, evName, optSort: document.getElementById('f_sort').value, margin: formMargin(), live: document.getElementById('f_live').checked };
 }
 async function saveGroup(){
   const $e = document.getElementById('ferr'), title = document.getElementById('f_t').value.trim(), com = readCommon();
@@ -1271,7 +1402,7 @@ async function saveGroup(){
         bt.update(doc(db,'markets',r.id), { ...base, options });
       } else bt.set(doc(collection(db,'markets')), { ...base, options: withFair([{ label:'Ano', odds:r.a, p:r.p, tl:0 }, { label:'Ne', odds:r.n, p:r.p ? 1 - r.p : 0, tl:0 }]), status:'open', suspended:false, winnerIndex:null, createdAt:serverTimestamp() });
     });
-    await bt.commit(); closeModal(); toast('Uloženo 🎯');
+    await bt.commit(); logA(S.ctx.gid ? 'Úprava sázky' : 'Nová sázka', `${title} (${rows.length} řádků)`); closeModal(); toast('Uloženo 🎯');
   } catch(e){ $e.textContent = errTxt(e); }
 }
 function oRowHtml(o){
@@ -1311,7 +1442,7 @@ async function saveSingle(){
   try {
     if (old) await updateDoc(doc(db,'markets',id), data);
     else await setDoc(doc(db,'markets',id), { ...data, status:'open', suspended:false, winnerIndex:null, createdAt:serverTimestamp() });
-    closeModal(); toast('Uloženo 🎯');
+    logA(old ? 'Úprava sázky' : 'Nová sázka', `${title}: ${opts.map(o => `${o.label} ${fmtOdds(o.odds)}`).join(', ')}`); closeModal(); toast('Uloženo 🎯');
   } catch(e){ $e.textContent = errTxt(e); }
 }
 
@@ -1324,10 +1455,50 @@ function openPoints(uid){ const u = S.users.find(x=>x.id===uid);
     <div class="row" style="margin-top:12px"><button class="btn no full" data-act="padj" data-s="-1">− Odebrat</button><button class="btn ok full" data-act="padj" data-s="1">+ Přidat</button></div>
     <button class="btn full" style="margin-top:8px" data-act="close">Zavřít</button>`, { uid, keep:true }); }
 function openLimits(uid){ const u = S.users.find(x=>x.id===uid);
-  openModal(`<h1>Limity – ${esc(u.name)}</h1><div class="mut">0 = použije se výchozí limit z Nastavení.</div>
-    <label>Max. vklad na tiket</label><input id="ul_s" type="number" inputmode="numeric" value="${u.maxStake||0}">
-    <label>Max. výhra na tiket</label><input id="ul_w" type="number" inputmode="numeric" value="${u.maxWin||0}">
-    <div class="row" style="margin-top:12px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="ulsave">Uložit</button></div>`, { uid, keep:true }); }
+  const sel = (id, opts, v) => `<select id="${id}">${opts.map(([k,t]) => `<option value="${k}" ${String(v??'')===k?'selected':''}>${t}</option>`).join('')}</select>`;
+  openModal(`<h1>🚧 ${esc(u.name)}</h1>
+    <div class="card"><div class="b">Limity sázek</div><div class="mut">0 = výchozí z Nastavení (vynásobený koeficientem).</div>
+      <label>Koeficient limitů (% výchozích limitů)</label><div class="row"><input id="ul_f" type="number" inputmode="numeric" value="${Math.round((u.factor||1)*100)}"><span class="mut">%</span></div>
+      <label>Max. vklad na tiket</label><input id="ul_s" type="number" inputmode="numeric" value="${u.maxStake||0}">
+      <label>Max. výhra na tiket</label><input id="ul_w" type="number" inputmode="numeric" value="${u.maxWin||0}">
+      <label>Max. vklad do jedné sázky (součet)</label><input id="ul_m" type="number" inputmode="numeric" value="${u.maxMarket||0}"></div>
+    <div class="card"><div class="b">⏳ Schvalování</div>
+      <label>Schvaluju jeho tikety s výhrou nad (0 = výchozí ${fmtN(S.cfg.approvalLimit||0)} b)</label><input id="ul_al" type="number" inputmode="numeric" value="${u.apprLimit||0}">
+      <label class="ck"><input type="checkbox" id="ul_aa" ${u.apprAll?'checked':''}> Schvalovat všechny jeho tikety</label></div>
+    <div class="card"><div class="b">💸 Cash-out</div>
+      ${sel('ul_cm', [['','Normální (marže z Nastavení)'],['bad','Nevýhodný (vlastní marže)'],['off','Vypnutý']], u.cashMode||'')}
+      <label>Marže jeho cash-outu</label><div class="row"><input id="ul_cmm" type="number" inputmode="numeric" value="${pct(u.cashM ?? 0.3)}"><span class="mut">%</span></div></div>
+    <div class="card"><div class="b">🚫 Blokace</div>
+      ${sel('ul_bl', [['','Může sázet'],['view','Jen prohlížení – nesmí sázet']], u.block||'')}
+      <label>Na jak dlouho</label><div class="chips wr">${[['keep', ms(u.blockUntil) ? 'Do ' + fmtDate(u.blockUntil) : 'Beze změny'],['1d','1 den'],['7d','Týden'],['0','Natrvalo']].map(([k,t],j) => `<button class="${j===0?'on':''}" data-act="ulbd" data-v="${k}">${t}</button>`).join('')}</div></div>
+    <label class="ck"><input type="checkbox" id="ul_sh" ${u.sharp?'checked':''}> Označit jako ostrého hráče</label>
+    <div class="row" style="margin-top:12px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="ulsave">Uložit</button></div>`, { uid, keep:true, bd:'keep' }); }
+async function saveLimits(){
+  const u = S.users.find(x => x.id === S.ctx.uid), gi = id => Math.max(0, parseInt(document.getElementById(id).value) || 0), bd = S.ctx.bd;
+  const block = document.getElementById('ul_bl').value;
+  const blockUntil = !block ? null : bd === 'keep' ? (u.blockUntil || null) : bd === '0' ? null : Timestamp.fromDate(new Date(Date.now() + (bd === '7d' ? 7 : 1) * 864e5));
+  const data = { factor: Math.min(1, Math.max(0.01, (gi('ul_f') || 100) / 100)), maxStake: gi('ul_s'), maxWin: gi('ul_w'), maxMarket: gi('ul_m'), apprLimit: gi('ul_al'), apprAll: document.getElementById('ul_aa').checked,
+    cashMode: document.getElementById('ul_cm').value, cashM: Math.min(0.95, gi('ul_cmm') / 100), block, blockUntil, sharp: document.getElementById('ul_sh').checked };
+  try { await updateDoc(doc(db,'users',S.ctx.uid), data); logA('Limity hráče', `${u.name}: koef. ${Math.round(data.factor*100)} %, vklad ${data.maxStake||'-'}, výhra ${data.maxWin||'-'}, schvalování ${data.apprAll?'vše':data.apprLimit||'výchozí'}, cash-out ${data.cashMode||'normální'}${data.block?', BLOKACE':''}`);
+    closeModal(); toast('Uloženo'); } catch(e){ toast(errTxt(e), true); }
+}
+async function makeSharp(uid){
+  const u = S.users.find(x => x.id === uid);
+  try { await updateDoc(doc(db,'users',uid), { sharp:true, factor:0.3, apprLimit: Math.max(50, Math.round((S.cfg.approvalLimit||300) / 3)), cashMode:'bad', cashM:0.3 });
+    logA('Ostrý hráč', `${u.name}: limity 30 %, přísnější schvalování, nevýhodný cash-out`); toast('⚠️ Nastaveno jako ostrý hráč'); closeModal(); } catch(e){ toast(errTxt(e), true); }
+}
+
+/* ---- log ---- */
+async function loadLog(){
+  try { const s = await getDocs(collection(db,'log')); S.logRows = s.docs.map(d => d.data()).sort((a,b) => (ms(b.t)||0) - (ms(a.t)||0)).slice(0, 200); }
+  catch(e){ S.logRows = []; toast(errTxt(e), true); }
+  render();
+}
+function viewLog(){
+  if (!S.logRows) { loadLog(); return '<div class="empty">Načítám…</div>'; }
+  return `<div class="row sp" style="margin-bottom:8px"><span class="mut">Posledních ${S.logRows.length} záznamů</span><button class="btn sm" data-act="logref">↻ Obnovit</button></div>
+    ${S.logRows.length ? `<div class="card"><table class="tbl">${S.logRows.map(r => `<tr><td><b>${esc(r.a)}</b><div class="mut">${esc(r.d)}</div></td><td class="mut" style="white-space:nowrap">${fmtDate(r.t)}</td></tr>`).join('')}</table></div>` : '<div class="empty">Zatím nic.</div>'}`;
+}
 
 function playerStats(uid){
   const bs = S.allBets.filter(b => b.uid === uid && !['rejected','void'].includes(b.status));
@@ -1344,6 +1515,7 @@ function openProfile(uid){
   const cats = Object.entries(p.cats).sort((a,b) => b[1] - a[1]).slice(0,5).map(([c,n]) => `${esc(c)} (${n})`).join(', ') || '–';
   openModal(`<h1>📊 ${esc(u.name)}</h1>
     ${p.sharp ? `<div class="warn">⚠️ Ostrý hráč – vyhrává nadprůměrně. Zvaž nižší limity.</div>` : ''}
+    ${u.sharp ? `<div class="note">Označen jako ostrý · limity ${Math.round((u.factor||1)*100)} % · ${u.apprAll ? 'schvaluješ vše' : 'schvaluješ nad ' + fmtN(u.apprLimit || S.cfg.approvalLimit || 0) + ' b'} · cash-out ${u.cashMode === 'off' ? 'vypnutý' : u.cashMode === 'bad' ? '−' + pct(u.cashM ?? 0.3) + ' %' : 'normální'}</div>` : ''}
     <div class="kpi" style="margin-top:10px">
       <div><span class="mut">Zisk hráče proti tobě</span><b class="${p.profit>0?'neg':'pos'}">${fmtS(p.profit)} b</b></div>
       <div><span class="mut">ROI</span><b>${(p.roi*100).toFixed(0)} %</b></div>
@@ -1355,6 +1527,7 @@ function openProfile(uid){
       <div><span class="mut">AKO / BB</span><b>${Math.round(p.ako*100)} %</b></div></div>
     <div class="mut" style="margin-top:10px">Nejčastěji sází na: ${cats}</div>
     <div class="row" style="margin-top:12px"><button class="btn full" data-act="ulim" data-u="${uid}">🚧 Limity</button><button class="btn full" data-act="ubets" data-u="${uid}">🧾 Tikety</button></div>
+    <button class="btn no full" style="margin-top:8px" data-act="usharp" data-u="${uid}">⚠️ Nastavit jako ostrého hráče</button>
     <button class="btn full" style="margin-top:8px" data-act="close">Zavřít</button>`);
 }
 function openQuick(i){
@@ -1377,7 +1550,7 @@ async function quickGo(){
   const err = surebetErr('single', opts); if (err) { $e.textContent = err; return; }
   const id = doc(collection(db,'markets')).id;
   try { await setDoc(doc(db,'markets',id), { kind:'single', grp:id, title, ev:'m:'+id, evName:'', bb:false, exclusive:false, nobody:false, category,
-      options: withFair(opts.map(o => ({ ...o, tl:0 }))), closesAt: Timestamp.fromDate(new Date(Date.now() + S.ctx.qmin * 60000)), status:'open', suspended:false, winnerIndex:null, createdAt: serverTimestamp() });
+      live: true, margin: S.cfg.margin, options: withFair(opts.map(o => ({ ...o, tl:0 }))), closesAt: Timestamp.fromDate(new Date(Date.now() + S.ctx.qmin * 60000)), status:'open', suspended:false, winnerIndex:null, createdAt: serverTimestamp() });
     const mins = S.ctx.qmin; closeModal(); toast(`⚡ Vypsáno na ${mins} min`); } catch(e){ $e.textContent = errTxt(e); }
 }
 async function saveQuickList(list){ try { await updateDoc(doc(db,'config','main'), { quick: list }); } catch(e){ toast(errTxt(e), true); } }
@@ -1434,7 +1607,7 @@ function cbRefresh(){
   document.getElementById('cb_legs').innerHTML = legs.map((l, k) => `<div class="leg"><span>${k+1}.</span><div><div class="mut">${esc(legTitle(l.m))}</div><div class="b">${esc(l.m.options[l.i].label)} @ ${fmtOdds(l.m.options[l.i].odds)}</div></div><button class="btn sm out" data-act="cbrm" data-k="${k}">✕</button></div>`).join('') || '<div class="mut">Přidej aspoň 2 sázky.</div>';
   const prod = legs.reduce((p, l) => p * l.m.options[l.i].odds, 1), cap = legs.length ? floor2(fairCap(legs)) : 0;
   document.getElementById('cb_info').innerHTML = legs.length ? `Běžný kurz <b>${fmtOdds(floor2(prod))}</b> · max. bez surebetu <b>${fmtOdds(cap)}</b>` : 'Vyber sázky.';
-  const o = document.getElementById('cb_o'); if (!o.value && legs.length >= 2) o.placeholder = fmtOdds(Math.min(cap, floor2(prod * 1.1)));
+  const o = document.getElementById('cb_o'); if (!o.value && legs.length >= 2) o.placeholder = fmtOdds(ladderDown(Math.min(cap, floor2(prod * 1.1))));
 }
 function comboLegErr(legs){
   for (let a = 0; a < legs.length; a++) for (let b = a + 1; b < legs.length; b++) {
@@ -1460,15 +1633,16 @@ async function saveCombo(){
   const data = { title, legs: legs.map(l => ({ m: l.m.id, i: l.i })), mids: legs.map(l => l.m.id), idx: legs.map(l => l.i), odds,
     active: old ? old.active : true, until, maxStake: Math.max(0, parseInt(document.getElementById('cb_ms').value) || 0), perUser: Math.max(0, parseInt(document.getElementById('cb_pu').value) || 0),
     createdAt: old?.createdAt || Timestamp.fromDate(new Date()) };
-  try { await updateDoc(doc(db,'config','main'), { combos: { ...(S.cfg.combos||{}), [id]: data } }); toast('Hotovka uložena 🔥'); openCombos(); }
+  try { await updateDoc(doc(db,'config','main'), { combos: { ...(S.cfg.combos||{}), [id]: data } }); logA('Hotovka', `${title} @ ${fmtOdds(odds)}`); toast('Hotovka uložena 🔥'); openCombos(); }
   catch(e){ $e.textContent = errTxt(e); }
 }
 
 /* ================== EVENTY ================== */
 document.addEventListener('change', e => { if (e.target.id === 'cb_m') cbOptions(); });
 document.addEventListener('input', e => {
+  if (e.target.id === 'of_a' || e.target.id === 'of_o') ofUpd();
   if (e.target.classList.contains('rp')) rowRecalc(e.target.closest('.grow'));
-  if (e.target.classList.contains('op')) { const r = e.target.closest('.optrow'), p = parseNum(e.target.value)/100; if (p > 0 && p < 1) r.querySelector('.oo').value = fmtOdds(oddsFromP(p, S.cfg.margin)); }
+  if (e.target.classList.contains('op')) { const r = e.target.closest('.optrow'), p = parseNum(e.target.value)/100; if (p > 0 && p < 1) r.querySelector('.oo').value = fmtOdds(oddsFromP(p, formMargin())); }
 });
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
@@ -1516,16 +1690,16 @@ document.addEventListener('click', async e => {
     case 'qdel': { if (!confirm('Odebrat tuhle rychlou sázku ze šablon?')) break; const l = [...quickList()]; l.splice(+d.i, 1); await saveQuickList(l.length ? l : DEF_QUICK.slice(0,1)); closeModal(); break; }
     case 'qstore': { const it = itemFromKey(d), m = it.m; const l = [...quickList(), { title: m.title, minutes: 5, category: m.category || 'Live', options: m.options.map(o => ({ label:o.label, odds:o.odds })) }];
       await saveQuickList(l); toast('⚡ Uloženo do rychlých sázek'); break; }
-    case 'lbulk': { const f = +d.f; $sheet.querySelectorAll(d.i === 'all' ? '.lcell' : `.lcell[data-i="${d.i}"]`).forEach(c => { if (c.dataset.lock) return; const inp = c.querySelector('.lo'), v = parseNum(inp.value); if (v > 1) inp.value = fmtOdds(Math.max(1.01, floor2(v * f))); }); toast('Posunuto – zkontroluj a ulož'); break; }
+    case 'lbulk': { const f = +d.f; $sheet.querySelectorAll(d.i === 'all' ? '.lcell' : `.lcell[data-i="${d.i}"]`).forEach(c => { if (c.dataset.lock) return; const inp = c.querySelector('.lo'), v = parseNum(inp.value); if (v > 1) inp.value = fmtOdds(Math.max(1.01, ladderDown(floor2(v * f)))); }); toast('Posunuto – zkontroluj a ulož'); break; }
     case 'uprof': openProfile(d.u); break;
     case 'iunsettle': { const it = itemFromKey(d); if (!confirm('Vrátit vyhodnocení? Výhry se hráčům odečtou (body můžou jít i do mínusu), sázka se uzavře a můžeš ji vyhodnotit znovu.')) break;
-      try { const n = await unsettleMarkets(it.rows.filter(r => ['settled','cancelled'].includes(r.status)).map(r => r.id)); toast(`Vráceno (${n} tiketů) – teď vyhodnoť znovu`); } catch(err){ toast(errTxt(err), true); } break; }
+      try { const n = await unsettleMarkets(it.rows.filter(r => ['settled','cancelled'].includes(r.status)).map(r => r.id)); logA('Vráceno vyhodnocení', `${it.type==='g'?it.title:it.m.title} (${n} tiketů)`); toast(`Vráceno (${n} tiketů) – teď vyhodnoť znovu`); } catch(err){ toast(errTxt(err), true); } break; }
     case 'inext': openGroupForm(d.g, 'next'); break;
     case 'login': doLogin(false); break;
     case 'register': doLogin(true); break;
     case 'logout': if (confirm('Odhlásit se?')) signOut(auth); break;
     case 'tab': S.tab = d.t; render(); window.scrollTo(0,0); break;
-    case 'asub': S.adminSub = d.s; render(); break;
+    case 'asub': S.adminSub = d.s; if (d.s === 'log') S.logRows = null; render(); break;
     case 'ffilter': S.feedFilter = d.f; render(); break;
     case 'close': closeModal(); break;
     // tiket
@@ -1542,13 +1716,13 @@ document.addEventListener('click', async e => {
     case 'bapprove': approve(d.b); break;
     case 'breject': if (confirm('Zamítnout tiket a vrátit body?')) refundBet(d.b, 'rejected'); break;
     case 'storno': if (confirm('Stornovat tiket a vrátit hráči vklad?')) refundBet(d.b, 'void'); break;
-    case 'suspall': try { await updateDoc(doc(db,'config','main'), { suspendAll: !S.cfg.suspendAll }); toast(S.cfg.suspendAll ? 'Sázení obnoveno ▶' : 'Vše pozastaveno ⏸'); } catch(err){ toast(errTxt(err), true); } break;
+    case 'suspall': try { logA(S.cfg.suspendAll ? 'Sázení obnoveno' : 'Vše pozastaveno', ''); await updateDoc(doc(db,'config','main'), { suspendAll: !S.cfg.suspendAll }); toast(S.cfg.suspendAll ? 'Sázení obnoveno ▶' : 'Vše pozastaveno ⏸'); } catch(err){ toast(errTxt(err), true); } break;
     // admin – sázky
     case 'newpick': openPick(); break;
     case 'gnew': openGroupForm(); break;
     case 'snew': openSingleForm(); break;
     case 'live': openLive(M(d.m)); break;
-    case 'lstep': { const inp = t.parentElement.querySelector('.lo'), v = parseNum(inp.value) || 1.5, nv = Math.max(1.01, floor2(v + (+d.d) * stepOf(v))); inp.value = fmtOdds(nv); break; }
+    case 'lstep': { const inp = t.parentElement.querySelector('.lo'), v = parseNum(inp.value) || 1.5; inp.value = fmtOdds(ladderStep(v, +d.d)); break; }
     case 'ltog': { const k = d.k;
       if (k === 'susp') { const r = t.closest('.lrow'), on = !r.dataset.susp; r.dataset.susp = on ? 1 : ''; r.classList.toggle('susp', on); t.classList.toggle('on', on); t.textContent = on ? '⏸ Pozastaveno' : '⏸ Pozastavit'; }
       else { const c = t.closest('.lcell');
@@ -1562,17 +1736,17 @@ document.addEventListener('click', async e => {
     case 'iedit': { const it = itemFromKey(d); it.type === 'g' ? openGroupForm(it.id) : openSingleForm(it.id); break; }
     case 'idup': { const it = itemFromKey(d); it.type === 'g' ? openGroupForm(it.id, true) : openSingleForm(it.id, true); break; }
     case 'icancel': { const it = itemFromKey(d); if (!confirm('Zrušit sázku? Tikety na ni budou vráceny (u AKO se tahle část nepočítá).')) break;
-      try { const n = await settleMarkets(it.rows.filter(isLive).map(r => ({ mid:r.id, win:null }))); toast(`Zrušeno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
+      try { const n = await settleMarkets(it.rows.filter(isLive).map(r => ({ mid:r.id, win:null }))); logA('Zrušena sázka', `${it.type==='g'?it.title:it.m.title} (${n} tiketů vráceno)`); toast(`Zrušeno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
     case 'idel': { const it = itemFromKey(d); if (!confirm('Smazat sázku z přehledu? (tikety zůstanou)')) break;
       try { const bt = writeBatch(db); it.rows.forEach(r => bt.delete(doc(db,'markets',r.id))); await bt.commit(); } catch(err){ toast(errTxt(err), true); } break; }
     case 'win': { const m = M(S.ctx.mid); if (!confirm(`Výsledek: „${m.options[+d.i].label}"?`)) break;
-      try { const n = await settleMarkets([{ mid:m.id, win:+d.i }]); closeModal(); toast(`Vyhodnoceno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
+      try { const n = await settleMarkets([{ mid:m.id, win:+d.i }]); logA('Vyhodnoceno', `${m.title}: ${m.options[+d.i].label} (${n} tiketů)`); closeModal(); toast(`Vyhodnoceno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
     case 'gtog': t.classList.toggle('on'); break;
     case 'gsettlego': { const g = groupById(S.ctx.gid), yes = new Set([...$sheet.querySelectorAll('.chk.on')].map(b => b.dataset.m)), live = g.rows.filter(isLive);
       if (g.exclusive && yes.size > 1 && !confirm('Tahle tabulka má mít ANO jen u jednoho. Opravdu víc?')) break;
       const names = live.filter(r => yes.has(r.id)).map(r => r.rowLabel);
       if (!confirm(names.length ? `ANO: ${names.join(', ')}. Ostatní NE. Potvrdit?` : 'Všude NE. Potvrdit?')) break;
-      try { const n = await settleMarkets(live.map(r => ({ mid:r.id, win: yes.has(r.id) ? 0 : 1 }))); closeModal(); toast(`Vyhodnoceno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
+      try { const n = await settleMarkets(live.map(r => ({ mid:r.id, win: yes.has(r.id) ? 0 : 1 }))); logA('Vyhodnoceno', `${g.title}: ANO ${names.join(', ') || 'nikdo'} (${n} tiketů)`); closeModal(); toast(`Vyhodnoceno (${n} tiketů)`); } catch(err){ toast(errTxt(err), true); } break; }
     // formuláře
     case 'rowdel': t.closest('.grow,.optrow').remove(); break;
     case 'gaddone': document.getElementById('grows').insertAdjacentHTML('beforeend', gRowHtml()); break;
@@ -1592,9 +1766,16 @@ document.addEventListener('click', async e => {
     case 'ubets': openUserBets(d.u); break;
     case 'upts': openPoints(d.u); break;
     case 'ulim': openLimits(d.u); break;
-    case 'ulsave': try { await updateDoc(doc(db,'users',S.ctx.uid), { maxStake: Math.max(0, parseInt(document.getElementById('ul_s').value)||0), maxWin: Math.max(0, parseInt(document.getElementById('ul_w').value)||0) }); closeModal(); toast('Limity uloženy'); } catch(err){ toast(errTxt(err), true); } break;
+    case 'ulsave': saveLimits(); break;
+    case 'ulbd': $sheet.querySelectorAll('[data-act=ulbd]').forEach(b => b.classList.toggle('on', b === t)); S.ctx.bd = d.v; break;
+    case 'usharp': if (confirm('Nastavit jako ostrého hráče? Limity 30 %, přísnější schvalování a nevýhodný cash-out.')) makeSharp(d.u); break;
+    case 'boffer': openOffer(d.b); break;
+    case 'offsend': sendOffer(); break;
+    case 'offyes': answerOffer(d.b, true); break;
+    case 'offno': if (confirm('Odmítnout nabídku? Vklad se ti vrátí.')) answerOffer(d.b, false); break;
+    case 'logref': S.logRows = null; render(); break;
     case 'padj': { const v = parseInt(document.getElementById('pa').value); if (!v||v<1) break;
-      try { await updateDoc(doc(db,'users',S.ctx.uid), { points: increment(v * +d.s) }); closeModal(); toast('Body upraveny'); } catch(err){ toast(errTxt(err), true); } break; }
+      try { await updateDoc(doc(db,'users',S.ctx.uid), { points: increment(v * +d.s) }); logA('Body', `${S.users.find(x => x.id === S.ctx.uid)?.name}: ${+d.s > 0 ? '+' : '−'}${v} b`); closeModal(); toast('Body upraveny'); } catch(err){ toast(errTxt(err), true); } break; }
     // nastavení
     case 'cgen': document.getElementById('s_nt').value = 'sazkovka-' + Math.random().toString(36).slice(2,10); break;
     case 'csave': saveSettings(); break;
