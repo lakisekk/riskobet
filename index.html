@@ -392,6 +392,64 @@ nav .dot{position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;bor
 /* větší dotyková plocha u malých ovládacích prvků (bez změny vzhledu) */
 .fav,.lnk,.top .logo,.inst .lnk,.like{position:relative}
 .fav::after,.lnk::after,.top .logo::after{content:"";position:absolute;inset:-9px -6px}
+/* ---- 2.2 kasino ---- */
+.rail .cas-rail{color:var(--acc)}
+.cas-stage{display:flex;justify-content:center;margin:6px 0 4px}
+.cwheel{width:min(300px,82vw);height:auto;filter:drop-shadow(0 10px 34px rgba(255,212,0,.16))}
+.cwheel text{font-family:var(--ff);font-stretch:100%}
+.cas-res{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-height:48px;margin:6px 0 4px;border-radius:var(--rm);padding:8px 14px;font-weight:700;background:var(--card);font-size:16px}
+.cas-res.idle,.cas-res.spin{color:var(--mut);font-weight:600;font-size:14.5px}
+.cas-res.spin{animation:caspulse 1s ease-in-out infinite}
+@keyframes caspulse{50%{opacity:.5}}
+.cas-res.win{background:linear-gradient(90deg,rgba(61,220,132,.2),var(--card));color:var(--txt);animation:caswin .5s cubic-bezier(.2,1.6,.4,1)}
+.cas-res.win span b{color:var(--grn)}
+.cas-res.lose{color:var(--mut)}
+@keyframes caswin{from{transform:scale(.9);opacity:0}}
+.cas-res b{font-size:18px}
+.rn{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:50%;font-weight:800;color:#fff;font-size:14px}
+.rn.r{background:#d63a33}.rn.b{background:#2c2c28}.rn.g{background:#1f9d57}
+.lgs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 2px}
+.lg{display:inline-flex;align-items:center;gap:6px;background:var(--card);border-radius:999px;padding:5px 11px 5px 7px;font-weight:700;font-size:13.5px}
+.lg i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.15)}
+.lg small{color:var(--mut);font-weight:600}
+.cas-bar{position:sticky;bottom:calc(80px + env(safe-area-inset-bottom));z-index:5;background:rgba(19,19,17,.96);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--rl);padding:12px;margin-top:12px}
+.cas-bar input{flex:1;min-width:0;margin:0;font-size:17px;font-weight:700}
+.cas-bar .btn.sm{padding:0 11px}
+.chips-row{display:flex;align-items:center;gap:7px}
+.cchip{width:42px;height:42px;border-radius:50%;font-weight:800;font-size:13px;background:var(--card3);border:3px dashed rgba(255,255,255,.28);color:var(--txt);transition:transform .15s}
+.cchip.on{background:var(--acc);color:var(--ink);border-color:rgba(0,0,0,.35);transform:translateY(-3px) scale(1.08);box-shadow:0 6px 16px rgba(255,212,0,.3)}
+.rboard{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px}
+.rboard.o3{margin-top:4px}
+.rc{position:relative;height:38px;border-radius:8px;font-weight:800;font-size:15px;color:#fff;background:var(--card2);display:grid;place-items:center;transition:box-shadow .2s,transform .1s}
+.rc:active{transform:scale(.95)}
+.rc.r{background:#b3302a}.rc.b{background:#262622}.rc.g{background:#1f9d57}
+.rc.z{grid-column:1/-1}
+.rc.o{background:var(--card);border:1px solid var(--line);font-size:13.5px;color:var(--txt)}
+.rc .dm{width:16px;height:16px;transform:rotate(45deg);border-radius:3px;display:block}
+.rc .dm.r{background:#d63a33}.rc .dm.b{background:#000;border:1px solid #555}
+.rc.win{box-shadow:inset 0 0 0 2px var(--grn)}
+.rc.hit{box-shadow:inset 0 0 0 3px var(--acc),0 0 18px rgba(255,212,0,.55);z-index:1}
+.rc .chip{position:absolute;right:-4px;top:-6px;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--acc);color:var(--ink);font-size:11.5px;font-style:normal;font-weight:800;display:grid;place-items:center;border:2px solid #000;z-index:2;animation:chipin .25s cubic-bezier(.2,1.6,.4,1)}
+@keyframes chipin{from{transform:translateY(-10px) scale(.4);opacity:0}}
+.cas-hist{padding:4px 14px}
+.ch-r{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ch-r:last-child{border-bottom:0}
+.ch-r .t{flex:1;min-width:0}.ch-r .t small{display:block;color:var(--mut);font-size:12.5px}
+.ch-r .cx{min-width:44px;text-align:center;font-weight:800;background:var(--card2);border-radius:8px;padding:5px 6px}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+#casset h2{font-size:17px}
+.cs-h,.cs-r{display:grid;grid-template-columns:1fr 1fr 70px 34px;gap:8px;align-items:center}
+.cs-h{color:var(--mut);font-size:12.5px;font-weight:600;margin-bottom:4px}
+.cs-r{margin-bottom:6px}.cs-r input{margin:0}
+.cs-sum{background:var(--card2);border-radius:var(--rs);padding:10px 12px;margin:10px 0;font-size:14px}
+.cs-rt{display:grid;grid-template-columns:1fr auto;gap:3px 12px}
+.cs-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:8px}
+.cs-grid label{margin:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 3px}
+.cs-grid label.r{background:rgba(214,58,51,.35)}.cs-grid label.b{background:var(--card3)}
+.cs-grid input{margin:0;padding:6px 2px;text-align:center;width:100%}
+.casban{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border-radius:var(--rm);padding:12px 14px;margin:10px 0;background:radial-gradient(circle at 0 50%,rgba(31,157,87,.35),transparent 60%),linear-gradient(90deg,#14130e,var(--card));border:1px solid rgba(255,212,0,.25)}
+.casban>span:nth-child(2){flex:1;min-width:0}.casban small{display:block;color:var(--mut);font-size:12.5px;font-weight:500}
+.casban .cb-i{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--acc);color:var(--ink);font-size:20px;transform:rotate(-8deg)}
 </style>
 </head>
 <body>
@@ -418,7 +476,7 @@ const MAX_LEGS = 6;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, runTransaction, writeBatch, serverTimestamp, increment, Timestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, runTransaction, writeBatch, serverTimestamp, increment, Timestamp, getDocs, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -433,7 +491,7 @@ const WANT_ADMIN = new URLSearchParams(location.search).has('schvalit');
 
 const SPORTS = { school:['Škola','graduation-cap'], football:['Fotbal','ball'], hockey:['Hokej','hockey'], tt:['Stolní tenis','tt'], mma:['MMA','hand-fist'], reality:['Reality show','tv'], other:['Ostatní','ellipsis'] };
 const sportOf = m => (m && SPORTS[m.sport]) ? m.sport : 'school';
-const IC = {"archive": "<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />", "arrow-right": "<path d=\"M5 12h14\" /><path d=\"m12 5 7 7-7 7\" />", "arrow-up-down": "<path d=\"m21 16-4 4-4-4\" /><path d=\"M17 20V4\" /><path d=\"m3 8 4-4 4 4\" /><path d=\"M7 4v16\" />", "badge-percent": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /><path d=\"m15 9-6 6\" /><path d=\"M9 9h.01\" /><path d=\"M15 15h.01\" />", "ball": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m12 7.7 4.3 3.1-1.65 5h-5.3l-1.65-5z\"/><path d=\"M12 2v5.7M21.5 9.1l-5.2 1.7M17.9 20.1l-3.25-4.3M6.1 20.1l3.25-4.3M2.5 9.1l5.2 1.7\"/>", "ban": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M4.929 4.929 19.07 19.071\" />", "banknote": "<rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"M6 12h.01M18 12h.01\" />", "bell": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" />", "calendar-clock": "<path d=\"M16 14v2.2l1.6 1\" /><path d=\"M16 2v3\" /><path d=\"M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338\" /><path d=\"M3 9h5.859\" /><path d=\"M8 2v3\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />", "cat": "<path d=\"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z\" /><path d=\"M8 14v.5\" /><path d=\"M16 14v.5\" /><path d=\"M11.25 16.25h1.5L12 17l-.75-.75Z\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M18 17V9\" /><path d=\"M13 17V5\" /><path d=\"M8 17v-3\" />", "chevron-left": "<path d=\"m15 18-6-6 6-6\" />", "chevron-right": "<path d=\"m9 18 6-6-6-6\" />", "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />", "circle-dot": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />", "circle-x": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />", "copy": "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" />", "filter": "<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\" />", "flame": "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />", "form": "<path d=\"M4 14h6\" /><path d=\"M4 2h10\" /><rect x=\"4\" y=\"18\" width=\"16\" height=\"4\" rx=\"1\" /><rect x=\"4\" y=\"6\" width=\"16\" height=\"4\" rx=\"1\" />", "gift": "<path d=\"M12 7v14\" /><path d=\"M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\" /><path d=\"M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5\" /><rect x=\"3\" y=\"7\" width=\"18\" height=\"4\" rx=\"1\" />", "graduation-cap": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\" /><path d=\"M22 10v6\" /><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\" />", "group": "<path d=\"M3 7V5c0-1.1.9-2 2-2h2\" /><path d=\"M17 3h2c1.1 0 2 .9 2 2v2\" /><path d=\"M21 17v2c0 1.1-.9 2-2 2h-2\" /><path d=\"M7 21H5c-1.1 0-2-.9-2-2v-2\" /><rect width=\"7\" height=\"5\" x=\"7\" y=\"7\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"10\" y=\"12\" rx=\"1\" />", "hand-fist": "<path d=\"M12.035 17.012a3 3 0 0 0-3-3l-.311-.002a.72.72 0 0 1-.505-1.229l1.195-1.195A2 2 0 0 1 10.828 11H12a2 2 0 0 0 0-4H9.243a3 3 0 0 0-2.122.879l-2.707 2.707A4.83 4.83 0 0 0 3 14a8 8 0 0 0 8 8h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v2a2 2 0 1 0 4 0\" /><path d=\"M13.888 9.662A2 2 0 0 0 17 8V5A2 2 0 1 0 13 5\" /><path d=\"M9 5A2 2 0 1 0 5 5V10\" /><path d=\"M9 7V4A2 2 0 1 1 13 4V7.268\" />", "history": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />", "hockey": "<path d=\"M13.8 3 9.4 14.6a2.2 2.2 0 0 1-2 1.4H4.6a1.9 1.9 0 0 0 0 3.8h3.6a4.4 4.4 0 0 0 4.1-2.8L17.6 3\"/><ellipse cx=\"18.2\" cy=\"18.4\" rx=\"3.3\" ry=\"1.6\"/>", "home": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "hourglass": "<path d=\"M5 22h14\" /><path d=\"M5 2h14\" /><path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /><path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />", "layout-dashboard": "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" />", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "list": "<path d=\"M3 5h.01\" /><path d=\"M3 12h.01\" /><path d=\"M3 19h.01\" /><path d=\"M8 5h13\" /><path d=\"M8 12h13\" /><path d=\"M8 19h13\" />", "lock": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "log-out": "<path d=\"m16 17 5-5-5-5\" /><path d=\"M21 12H9\" /><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\" />", "megaphone": "<path d=\"M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z\" /><path d=\"M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14\" /><path d=\"M8 6v8\" />", "pause": "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" /><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" />", "pencil": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" />", "play": "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />", "plus": "<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />", "puzzle": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "radio": "<path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\" /><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\" /><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\" /><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "receipt": "<path d=\"M12 17V7\" /><path d=\"M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8\" /><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\" />", "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\" /><path d=\"m14.5 12.5 2-2\" /><path d=\"m11.5 9.5 2-2\" /><path d=\"m8.5 6.5 2-2\" /><path d=\"m17.5 15.5 2-2\" />", "school": "<path d=\"M14 21v-3a2 2 0 0 0-4 0v3\" /><path d=\"M18 4.933V21\" /><path d=\"m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6\" /><path d=\"m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11\" /><path d=\"M6 4.933V21\" /><circle cx=\"12\" cy=\"9\" r=\"2\" />", "scroll-text": "<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "search": "<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />", "settings": "<path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\" /><circle cx=\"12\" cy=\"12\" r=\"3\" />", "share": "<path d=\"M12 2v13\" /><path d=\"m16 6-4-4-4 4\" /><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\" />", "sheet": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /><line x1=\"3\" x2=\"21\" y1=\"9\" y2=\"9\" /><line x1=\"3\" x2=\"21\" y1=\"15\" y2=\"15\" /><line x1=\"9\" x2=\"9\" y1=\"9\" y2=\"21\" /><line x1=\"15\" x2=\"15\" y1=\"9\" y2=\"21\" />", "shield": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "sliders-horizontal": "<path d=\"M10 5H3\" /><path d=\"M12 19H3\" /><path d=\"M14 3v4\" /><path d=\"M16 17v4\" /><path d=\"M21 12h-9\" /><path d=\"M21 19h-5\" /><path d=\"M21 5h-7\" /><path d=\"M8 10v4\" /><path d=\"M8 12H3\" />", "sparkles": "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />", "star": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "target": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /><path d=\"M13 5v2\" /><path d=\"M13 17v2\" /><path d=\"M13 11v2\" />", "trash-2": "<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />", "trending-down": "<path d=\"M16 17h6v-6\" /><path d=\"m22 17-8.5-8.5-5 5L2 7\" />", "trending-up": "<path d=\"M16 7h6v6\" /><path d=\"m22 7-8.5 8.5-5-5L2 17\" />", "triangle-alert": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />", "trophy": "<path d=\"M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2\" /><path d=\"M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2\" /><path d=\"M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3\" /><path d=\"M4 22h16\" /><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /><path d=\"M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3\" />", "tt": "<path d=\"M12.2 15.6a6.7 6.7 0 1 1 3.4-3.4\"/><path d=\"m12.2 15.6 4.9 4.9a2.4 2.4 0 0 0 3.4-3.4l-4.9-4.9\"/><path d=\"M5.6 13.4 13.4 5.6\"/>", "tv": "<path d=\"m17 2-5 5-5-5\" /><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" />", "undo-2": "<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><path d=\"M16 3.128a4 4 0 0 1 0 7.744\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><circle cx=\"9\" cy=\"7\" r=\"4\" />", "view": "<path d=\"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2\" /><path d=\"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><path d=\"M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0\" />", "x": "<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />", "zap": "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\" />"};
+const IC = {"archive": "<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />", "arrow-right": "<path d=\"M5 12h14\" /><path d=\"m12 5 7 7-7 7\" />", "arrow-up-down": "<path d=\"m21 16-4 4-4-4\" /><path d=\"M17 20V4\" /><path d=\"m3 8 4-4 4 4\" /><path d=\"M7 4v16\" />", "badge-percent": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /><path d=\"m15 9-6 6\" /><path d=\"M9 9h.01\" /><path d=\"M15 15h.01\" />", "ball": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m12 7.7 4.3 3.1-1.65 5h-5.3l-1.65-5z\"/><path d=\"M12 2v5.7M21.5 9.1l-5.2 1.7M17.9 20.1l-3.25-4.3M6.1 20.1l3.25-4.3M2.5 9.1l5.2 1.7\"/>", "ban": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M4.929 4.929 19.07 19.071\" />", "banknote": "<rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"M6 12h.01M18 12h.01\" />", "bell": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" />", "calendar-clock": "<path d=\"M16 14v2.2l1.6 1\" /><path d=\"M16 2v3\" /><path d=\"M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338\" /><path d=\"M3 9h5.859\" /><path d=\"M8 2v3\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />", "cat": "<path d=\"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z\" /><path d=\"M8 14v.5\" /><path d=\"M16 14v.5\" /><path d=\"M11.25 16.25h1.5L12 17l-.75-.75Z\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M18 17V9\" /><path d=\"M13 17V5\" /><path d=\"M8 17v-3\" />", "chevron-left": "<path d=\"m15 18-6-6 6-6\" />", "chevron-right": "<path d=\"m9 18 6-6-6-6\" />", "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />", "circle-dot": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />", "circle-x": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />", "copy": "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />", "dices": "<rect width=\"12\" height=\"12\" x=\"2\" y=\"10\" rx=\"2\" ry=\"2\" /><path d=\"m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6\" /><path d=\"M6 18h.01\" /><path d=\"M10 14h.01\" /><path d=\"M15 6h.01\" /><path d=\"M18 9h.01\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" />", "eraser": "<path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" />", "filter": "<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\" />", "flame": "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />", "form": "<path d=\"M4 14h6\" /><path d=\"M4 2h10\" /><rect x=\"4\" y=\"18\" width=\"16\" height=\"4\" rx=\"1\" /><rect x=\"4\" y=\"6\" width=\"16\" height=\"4\" rx=\"1\" />", "gift": "<path d=\"M12 7v14\" /><path d=\"M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\" /><path d=\"M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5\" /><rect x=\"3\" y=\"7\" width=\"18\" height=\"4\" rx=\"1\" />", "graduation-cap": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\" /><path d=\"M22 10v6\" /><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\" />", "group": "<path d=\"M3 7V5c0-1.1.9-2 2-2h2\" /><path d=\"M17 3h2c1.1 0 2 .9 2 2v2\" /><path d=\"M21 17v2c0 1.1-.9 2-2 2h-2\" /><path d=\"M7 21H5c-1.1 0-2-.9-2-2v-2\" /><rect width=\"7\" height=\"5\" x=\"7\" y=\"7\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"10\" y=\"12\" rx=\"1\" />", "hand-fist": "<path d=\"M12.035 17.012a3 3 0 0 0-3-3l-.311-.002a.72.72 0 0 1-.505-1.229l1.195-1.195A2 2 0 0 1 10.828 11H12a2 2 0 0 0 0-4H9.243a3 3 0 0 0-2.122.879l-2.707 2.707A4.83 4.83 0 0 0 3 14a8 8 0 0 0 8 8h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v2a2 2 0 1 0 4 0\" /><path d=\"M13.888 9.662A2 2 0 0 0 17 8V5A2 2 0 1 0 13 5\" /><path d=\"M9 5A2 2 0 1 0 5 5V10\" /><path d=\"M9 7V4A2 2 0 1 1 13 4V7.268\" />", "history": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />", "hockey": "<path d=\"M13.8 3 9.4 14.6a2.2 2.2 0 0 1-2 1.4H4.6a1.9 1.9 0 0 0 0 3.8h3.6a4.4 4.4 0 0 0 4.1-2.8L17.6 3\"/><ellipse cx=\"18.2\" cy=\"18.4\" rx=\"3.3\" ry=\"1.6\"/>", "home": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "hourglass": "<path d=\"M5 22h14\" /><path d=\"M5 2h14\" /><path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /><path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />", "layout-dashboard": "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" />", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "list": "<path d=\"M3 5h.01\" /><path d=\"M3 12h.01\" /><path d=\"M3 19h.01\" /><path d=\"M8 5h13\" /><path d=\"M8 12h13\" /><path d=\"M8 19h13\" />", "lock": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "log-out": "<path d=\"m16 17 5-5-5-5\" /><path d=\"M21 12H9\" /><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\" />", "megaphone": "<path d=\"M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z\" /><path d=\"M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14\" /><path d=\"M8 6v8\" />", "pause": "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" /><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" />", "pencil": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" />", "play": "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />", "plus": "<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />", "puzzle": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "radio": "<path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\" /><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\" /><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\" /><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "receipt": "<path d=\"M12 17V7\" /><path d=\"M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8\" /><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\" />", "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\" /><path d=\"m14.5 12.5 2-2\" /><path d=\"m11.5 9.5 2-2\" /><path d=\"m8.5 6.5 2-2\" /><path d=\"m17.5 15.5 2-2\" />", "school": "<path d=\"M14 21v-3a2 2 0 0 0-4 0v3\" /><path d=\"M18 4.933V21\" /><path d=\"m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6\" /><path d=\"m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11\" /><path d=\"M6 4.933V21\" /><circle cx=\"12\" cy=\"9\" r=\"2\" />", "scroll-text": "<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "search": "<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />", "settings": "<path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\" /><circle cx=\"12\" cy=\"12\" r=\"3\" />", "share": "<path d=\"M12 2v13\" /><path d=\"m16 6-4-4-4 4\" /><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\" />", "sheet": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /><line x1=\"3\" x2=\"21\" y1=\"9\" y2=\"9\" /><line x1=\"3\" x2=\"21\" y1=\"15\" y2=\"15\" /><line x1=\"9\" x2=\"9\" y1=\"9\" y2=\"21\" /><line x1=\"15\" x2=\"15\" y1=\"9\" y2=\"21\" />", "shield": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "sliders-horizontal": "<path d=\"M10 5H3\" /><path d=\"M12 19H3\" /><path d=\"M14 3v4\" /><path d=\"M16 17v4\" /><path d=\"M21 12h-9\" /><path d=\"M21 19h-5\" /><path d=\"M21 5h-7\" /><path d=\"M8 10v4\" /><path d=\"M8 12H3\" />", "sparkles": "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />", "star": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "target": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /><path d=\"M13 5v2\" /><path d=\"M13 17v2\" /><path d=\"M13 11v2\" />", "trash-2": "<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />", "trending-down": "<path d=\"M16 17h6v-6\" /><path d=\"m22 17-8.5-8.5-5 5L2 7\" />", "trending-up": "<path d=\"M16 7h6v6\" /><path d=\"m22 7-8.5 8.5-5-5L2 17\" />", "triangle-alert": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />", "trophy": "<path d=\"M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2\" /><path d=\"M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2\" /><path d=\"M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3\" /><path d=\"M4 22h16\" /><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /><path d=\"M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3\" />", "tt": "<path d=\"M12.2 15.6a6.7 6.7 0 1 1 3.4-3.4\"/><path d=\"m12.2 15.6 4.9 4.9a2.4 2.4 0 0 0 3.4-3.4l-4.9-4.9\"/><path d=\"M5.6 13.4 13.4 5.6\"/>", "tv": "<path d=\"m17 2-5 5-5-5\" /><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" />", "undo-2": "<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><path d=\"M16 3.128a4 4 0 0 1 0 7.744\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><circle cx=\"9\" cy=\"7\" r=\"4\" />", "view": "<path d=\"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2\" /><path d=\"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><path d=\"M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0\" />", "x": "<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />", "zap": "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\" />"};
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
 const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 Object.assign(S, { adminSub:'home', sport:'all', q:'', qOpen:false, mtOpen:null, aq:'', offF:'live', psort:'pts', meas:null });
@@ -869,9 +927,9 @@ function render(){
   if ($modal.classList.contains('show') && S.ctx?.keep) return;
   const adm = isAdmin(), pc = adm ? pendingBets().length : 0;
   if (!adm && S.tab === 'admin') S.tab = 'markets';
-  if (!['markets','mine','acct','admin','comm'].includes(S.tab)) S.tab = 'markets';
+  if (!['markets','mine','acct','admin','comm','casino'].includes(S.tab)) S.tab = 'markets';
   trackOdds();
-  const body = S.tab === 'mine' ? viewMine() : S.tab === 'comm' ? viewComm() : S.tab === 'acct' ? viewAccount() : S.tab === 'admin' ? viewAdmin() : S.archive ? viewArchive() : S.mtOpen ? viewMatch(S.mtOpen) : viewMarkets();
+  const body = S.tab === 'mine' ? viewMine() : S.tab === 'comm' ? viewComm() : S.tab === 'casino' ? viewCasino() : S.tab === 'acct' ? viewAccount() : S.tab === 'admin' ? viewAdmin() : S.archive ? viewArchive() : S.mtOpen ? viewMatch(S.mtOpen) : viewMarkets();
   const sd = S.slip.length ? slipData() : null, home = S.tab === 'markets';
   const ae = document.activeElement, keep = ae && ae.id && $app.contains(ae) ? { id: ae.id, s: ae.selectionStart, e: ae.selectionEnd } : null;
   const nb = (k, icn, t, extra = '') => `<button class="${extra}" data-act="tab" data-t="${k}">${ic(icn)}${t}</button>`;
@@ -943,7 +1001,7 @@ function viewMarkets(){
   const sports = Object.keys(SPORTS).filter(k => live.some(i => sportOf(i.rows[0]) === k));
   if (!['all','fav'].includes(S.sport) && !sports.includes(S.sport)) S.sport = 'all';
   const rb = (k, icn, t) => `<button class="${S.sport === k ? 'on' : ''}" data-act="sport" data-s="${k}">${ic(icn)}${t}</button>`;
-  return `<div class="rail">${rb('all', 'layout-dashboard', 'Vše')}${sports.map(k => rb(k, SPORTS[k][1], SPORTS[k][0])).join('')}${rb('fav', 'star', 'Oblíbené')}</div>
+  return `<div class="rail">${rb('all', 'layout-dashboard', 'Vše')}${sports.map(k => rb(k, SPORTS[k][1], SPORTS[k][0])).join('')}${rb('fav', 'star', 'Oblíbené')}${S.cfg.casino?.on || isAdmin() ? `<button data-act="tab" data-t="casino" class="cas-rail">${ic('dices')}Kasino</button>` : ''}</div>
     ${S.qOpen ? `<div class="qbox">${ic('search')}<input id="q" placeholder="Hledat sázku, tým nebo jméno" value="${esc(S.q)}" autocomplete="off"></div>` : ''}
     <div id="mk-list">${marketsList()}</div>`;
 }
@@ -2129,7 +2187,7 @@ function marketsList(){
     return `${ban}${plain ? dailyBanner() : ''}${promos}${chips}<div class="empty">${ic(q ? 'search' : S.sport === 'fav' ? 'star' : 'ticket')}${e}</div>${arch}`;
   }
   const sec = (t, icn, list) => list.length ? `<h2>${icn ? ic(icn) : ''}${t}</h2>${list.map(card).join('')}` : '';
-  return `${ban}${plain ? dailyBanner() + installBanner() : ''}${spec ? specialCard(spec) : ''}${promos}${chips}
+  return `${ban}${plain ? dailyBanner() + casinoBanner() + installBanner() : ''}${spec ? specialCard(spec) : ''}${promos}${chips}
     ${combos.length ? `<h2>${ic('flame')}Hotovky</h2><div class="${combos.length > 1 ? 'hscroll' : ''}">${combos.map(comboCard).join('')}</div>` : ''}
     ${sec('Právě se hraje', 'radio', liveM)}${sec('Tipy bookmakera', 'star', recs)}
     ${sec(recs.length || combos.length || liveM.length ? 'Nabídka' : 'Nabídka', '', open)}${sec('Dlouhodobé sázky', 'calendar-clock', long)}${sec('Čeká na výsledek', 'hourglass', closed)}
@@ -2253,6 +2311,7 @@ function admMore(){
     ${b('','flame','Hotovky','Kombinace s vylepšeným kurzem','combos')}
     ${b('','badge-percent','Promo a denní bonus','Bannery nahoře v nabídce, bonus za přihlášení','promos')}
     ${b('','calendar-clock','Šablony dnů','Ulož si celý den sázek a vypiš ho jedním klepnutím','tpls')}
+    ${b('','dices','Kasino','Kolo štěstí a ruleta: šance, výhoda, výsledky','casset')}
     ${b('','gift','Denní bonus','Hráči si jednou denně vyzvednou body','dailyset')}
     ${b('','megaphone','Zprávy a notifikace hráčům','Oznámení pod zvonečkem i do mobilu','msgnew')}
     ${b('log','history','Log','Kdo, kdy a co změnil')}
@@ -2965,6 +3024,363 @@ function csvPlayers(){
   downloadCsv(`riskobet-pokladna-${new Date().toISOString().slice(0,10)}.csv`, rows);
 }
 
+Object.assign(S, { casG:'wheel', casAmt:20, casChip:10, casBets:[], casStack:[], casBusy:false, casHist:null, casRes:null, casResumed:false, wRot:0, rRot:0, bAng:0, bR:1 });
+const RL_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const RL_RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+const rlCol = n => n === 0 ? 'g' : RL_RED.includes(n) ? 'r' : 'b';
+const RL_FILL = { g:'#1f9d57', r:'#d63a33', b:'#1b1b19' };
+const RB_LAB = { red:'Červená', black:'Černá', even:'Sudá', odd:'Lichá', low:'1–18', high:'19–36' };
+const W_COLS = ['#3ddc84', '#6aa8ff', '#ff8a1f', '#ffd400', '#ff5449', '#c58bff', '#f5f3ea'];
+const CAS_DEF = () => ({ on:false, wheel:{ segs:[{ m:0, w:14 }, { m:1.5, w:5 }, { m:2, w:3 }, { m:5, w:1 }] }, roul:{ w:[9, ...Array(36).fill(1)] } });
+// hranice výsledků na škále 0–999 999 (stejný výpočet dělají pravidla Firebase)
+function cumOf(w){ const W = w.reduce((a, b) => a + b, 0), c = [0]; let s = 0;
+  w.forEach((x, i) => { s += x; c.push(i === w.length - 1 ? 1000000 : Math.round(1e6 * s / W)); }); return c; }
+function casCfg(){
+  const c = S.cfg.casino || {}, d = CAS_DEF();
+  const wheel = c.wheel?.segs?.length && c.wheel.cum ? c.wheel : { ...d.wheel, m: d.wheel.segs.map(s => s.m), cum: cumOf(d.wheel.segs.map(s => s.w)) };
+  const roul = c.roul?.w?.length === 37 && c.roul.cum ? c.roul : { ...d.roul, cum: cumOf(d.roul.w) };
+  return { on: !!c.on, wheel, roul };
+}
+// náhoda = mikrosekundy serverového času zápisu (hráč je neovlivní), promíchané násobením
+const rndOf = t => (Math.floor((t?.nanoseconds || 0) / 1000) * 7919) % 1000000;
+function pickR(R, cum){ for (let i = 0; i < cum.length - 1; i++) if (cum[i] <= R && R < cum[i + 1]) return i; return cum.length - 2; }
+function rbWin(b, n){
+  if (b.k === 'n') return b.v === n ? 36 : 0;
+  if (n === 0) return 0;
+  if (b.k === 'red') return RL_RED.includes(n) ? 2 : 0;
+  if (b.k === 'black') return RL_RED.includes(n) ? 0 : 2;
+  if (b.k === 'even') return n % 2 === 0 ? 2 : 0;
+  if (b.k === 'odd') return n % 2 === 1 ? 2 : 0;
+  if (b.k === 'low') return n <= 18 ? 2 : 0;
+  if (b.k === 'high') return n >= 19 ? 2 : 0;
+  if (b.k === 'doz') return Math.trunc((n - 1) / 12) === b.v ? 3 : 0;
+  return (n - 1) % 3 === b.v ? 3 : 0;
+}
+const casPay = (s, r) => s.g === 'wheel' ? Math.trunc(s.a * s.m[r]) : s.bets.reduce((a, b) => a + b.a * rbWin(b, r), 0);
+const fmtX = m => String(+(+m).toFixed(2)).replace('.', ',') + '×';
+const pctS = (x, d = 1) => (x * 100).toFixed(d).replace('.', ',') + ' %';
+const rbKey = b => b.k + (b.v ?? '');
+const rbLabel = b => b.k === 'n' ? String(b.v) : b.k === 'doz' ? ['1–12', '13–24', '25–36'][b.v] : b.k === 'col' ? `${b.v + 1}. sloupec` : RB_LAB[b.k];
+
+// ---------- kreslení ----------
+function arcP(r0, r1, a0, a1){
+  const p = (r, a) => { const t = (a - 90) * Math.PI / 180; return (150 + r * Math.cos(t)).toFixed(2) + ' ' + (150 + r * Math.sin(t)).toFixed(2); };
+  if (a1 - a0 > 180) return arcP(r0, r1, a0, (a0 + a1) / 2) + arcP(r0, r1, (a0 + a1) / 2, a1);
+  return `M${p(r1, a0)}A${r1} ${r1} 0 0 1 ${p(r1, a1)}L${p(r0, a1)}A${r0} ${r0} 0 0 0 ${p(r0, a0)}Z`;
+}
+function wheelSlots(segs){
+  const W = segs.reduce((a, s) => a + (s.w > 0 ? s.w : 0), 0), small = W <= 60, P = [];
+  segs.forEach((s, j) => { if (!(s.w > 0)) return; const p = small ? s.w : Math.max(1, Math.round(60 * s.w / W));
+    for (let k = 0; k < p; k++) P.push({ j, size: s.w / p, pos: (k + .5) / p + j * 1e-6 }); });
+  P.sort((a, b) => a.pos - b.pos);
+  let a = 0; return P.map(x => { const o = { j: x.j, a0: a / W * 360, a1: (a + x.size) / W * 360 }; a += x.size; return o; });
+}
+function segColor(segs, j){
+  const m = segs[j].m; if (!(m > 0)) return '#262622';
+  const ms_ = [...new Set(segs.filter(s => s.m > 0).map(s => s.m))].sort((a, b) => a - b);
+  return W_COLS[ms_.indexOf(m) % W_COLS.length];
+}
+function wheelSvg(w){
+  const sl = wheelSlots(w.segs);
+  const parts = sl.map(s => { const col = segColor(w.segs, s.j), mid = (s.a0 + s.a1) / 2, len = (s.a1 - s.a0) * Math.PI / 180 * 104;
+    const fs = Math.min(17, len * .5), dark = col !== '#262622';
+    return `<path d="${arcP(46, 138, s.a0, s.a1)}" fill="${col}" stroke="#000" stroke-width="1.5"/>` +
+      (fs >= 7 ? `<text x="150" y="${150 - 104}" transform="rotate(${mid.toFixed(2)} 150 150)" text-anchor="middle" dominant-baseline="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${dark ? '#0b0a00' : '#9d9b8f'}">${fmtX(w.segs[s.j].m)}</text>` : ''); }).join('');
+  return `<svg class="cwheel" viewBox="0 0 300 300" aria-label="Kolo štěstí">
+    <circle cx="150" cy="150" r="147" fill="#0b0a00" stroke="#ffd400" stroke-width="4"/>
+    <g id="whg" transform="rotate(${(S.wRot % 360).toFixed(2)} 150 150)">${parts}</g>
+    <circle cx="150" cy="150" r="44" fill="#131311" stroke="#ffd400" stroke-width="3"/>
+    <text x="150" y="151" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="900" fill="#ffd400" font-stretch="125%">RB</text>
+    <path d="M150 30 L137 4 H163 Z" fill="#ffd400" stroke="#000" stroke-width="2"/></svg>`;
+}
+function roulSlots(w){
+  const W = w.reduce((a, b) => a + b, 0); let a = 0;
+  return RL_ORDER.map(n => { const o = { n, a0: a / W * 360, a1: (a + w[n]) / W * 360 }; a += w[n]; return o; }).filter(s => s.a1 > s.a0);
+}
+const BALL = { rim: 132, pocket: 103 };
+function roulSvg(r){
+  const sl = roulSlots(r.w);
+  const parts = sl.map(s => { const mid = (s.a0 + s.a1) / 2, len = (s.a1 - s.a0) * Math.PI / 180 * 119, fs = Math.min(12, len * .62);
+    return `<path d="${arcP(95, 128, s.a0, s.a1)}" fill="${RL_FILL[rlCol(s.n)]}" stroke="#c9a400" stroke-width=".8"/>` +
+      (fs >= 5 ? `<text x="150" y="${150 - 118}" transform="rotate(${mid.toFixed(2)} 150 150)" text-anchor="middle" dominant-baseline="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="#f5f3ea">${s.n}</text>` : ''); }).join('');
+  const sp = [0, 45, 90, 135].map(a => `<path d="M150 ${150 - 70}V${150 + 70}" transform="rotate(${a} 150 150)" stroke="#c9a400" stroke-width="4" stroke-linecap="round"/>`).join('');
+  return `<svg class="cwheel" viewBox="0 0 300 300" aria-label="Ruleta">
+    <circle cx="150" cy="150" r="147" fill="#2a1d0e" stroke="#ffd400" stroke-width="4"/><circle cx="150" cy="150" r="137" fill="#1a1208"/>
+    <g id="rwg" transform="rotate(${(S.rRot % 360).toFixed(2)} 150 150)">${parts}<circle cx="150" cy="150" r="95" fill="#3a2810" stroke="#c9a400" stroke-width="2"/><circle cx="150" cy="150" r="64" fill="#2a1d0e"/>${sp}<circle cx="150" cy="150" r="16" fill="#ffd400"/></g>
+    ${ballEl()}<path d="M150 13 L142 0 H158 Z" fill="#ffd400"/></svg>`;
+}
+function ballXY(){ const r = BALL.pocket + (BALL.rim - BALL.pocket) * S.bR, t = (S.bAng - 90) * Math.PI / 180; return [150 + r * Math.cos(t), 150 + r * Math.sin(t)]; }
+function ballEl(){ const [x, y] = ballXY(); return `<circle id="rball" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="6.5" fill="#fff" stroke="#999" stroke-width="1"/>`; }
+
+// ---------- animace točení ----------
+const SPIN = { on:false };
+function spinPaint(){
+  const w = document.getElementById('whg'); if (w) w.setAttribute('transform', `rotate(${(S.wRot % 360).toFixed(2)} 150 150)`);
+  const r = document.getElementById('rwg'); if (r) r.setAttribute('transform', `rotate(${(S.rRot % 360).toFixed(2)} 150 150)`);
+  const b = document.getElementById('rball'); if (b) { const [x, y] = ballXY(); b.setAttribute('cx', x.toFixed(2)); b.setAttribute('cy', y.toFixed(2)); }
+}
+function spinStart(g){
+  const s = SPIN; Object.assign(s, { on:true, g, phase:'free', v: g === 'wheel' ? 900 : 420, bv: 620, last: 0 });
+  if (g === 'roul') S.bR = 1;
+  const step = t => {
+    if (!s.on) return;
+    const dt = s.last ? Math.min(.05, (t - s.last) / 1000) : 0; s.last = t;
+    if (s.phase === 'free') { if (g === 'wheel') S.wRot += s.v * dt; else { S.rRot += s.v * dt; S.bAng -= s.bv * dt; } }
+    else {
+      const k = Math.min(1, (t - s.t0) / s.D), e = 1 - Math.pow(1 - k, 3);
+      if (g === 'wheel') S.wRot = s.r0 + s.dr * e;
+      else { S.rRot = s.r0 + s.dr * e; S.bAng = s.b0 + s.db * e; S.bR = k < .55 ? 1 : Math.max(0, 1 - (k - .55) / .32); }
+      if (k >= 1) { s.on = false; spinPaint(); s.res(); return; }
+    }
+    spinPaint(); requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// zastaví kolo tak, aby pod šipkou nahoře skončil úhel `at` (stupně na kole)
+function spinStop(at){
+  return new Promise(res => {
+    const s = SPIN; if (!s.on) { res(); return; }
+    const cur = s.g === 'wheel' ? S.wRot : S.rRot, want = s.g === 'wheel' ? 2.4 : 3.6;
+    let dr = (((-at - cur) % 360) + 360) % 360;
+    dr += 360 * Math.max(s.g === 'wheel' ? 2 : 1, Math.round((s.v * want / 3 - dr) / 360));
+    const D = Math.max(1.8, 3 * dr / s.v) * 1000;
+    Object.assign(s, { res, phase:'ease', t0: performance.now(), r0: cur, dr, D });
+    if (s.g === 'roul') { const b0 = S.bAng; let db = -(((b0 % 360) + 360) % 360); db -= 360 * Math.max(2, Math.round((s.bv * D / 3000 + db) / 360)); Object.assign(s, { b0, db }); }
+  });
+}
+
+// ---------- hra ----------
+async function casSettle(s, r, pay){
+  const bt = writeBatch(db);
+  bt.update(doc(db,'cas',s.id), { st:'done', r, pay, done: serverTimestamp() });
+  bt.update(doc(db,'users',s.uid), { points: increment(pay), lastCas: s.id });
+  await bt.commit();
+}
+async function casLoad(){
+  try { const q = await getDocs(query(collection(db,'cas'), where('uid','==',S.user.uid)));
+    S.casHist = q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.t) - ms(a.t)); }
+  catch(e){ S.casHist = []; }
+}
+// dohraje hry, které se nestihly vyhodnotit (zavřená appka, výpadek sítě)
+async function casResume(){
+  S.casResumed = true; await casLoad();
+  const pend = (S.casHist || []).filter(s => s.st === 'spin' && s.t);
+  let won = 0;
+  for (const s of pend) { const r = pickR(rndOf(s.t), s.cum), pay = casPay(s, r);
+    try { await casSettle(s, r, pay); Object.assign(s, { st:'done', r, pay }); won += pay; } catch(e){} }
+  if (pend.length) { toast(`Dohráno ${pend.length === 1 ? '1 rozehraná hra' : pend.length + ' rozehraných her'}${won ? `, výhra ${fmtN(won)} b` : ''}`); render(); }
+}
+async function casSpin(){
+  if (S.casBusy) return;
+  const C = casCfg();
+  if (!C.on) { toast('Kasino je teď zavřené.', true); return; }
+  if (S.cfg.suspendAll) { toast('Sázení je teď pozastavené.', true); return; }
+  if (isBlocked(me())) { toast('Sázení máš momentálně pozastavené.', true); return; }
+  let data;
+  if (S.casG === 'wheel') {
+    const a = parseInt(S.casAmt) || 0; if (a < 1) { toast('Zadej vklad.', true); return; }
+    data = { g:'wheel', a, m: C.wheel.m, cum: C.wheel.cum };
+  } else {
+    const bets = S.casBets.filter(b => b.a > 0); if (!bets.length) { toast('Polož žeton na stůl.', true); return; }
+    data = { g:'roul', a: bets.reduce((x, b) => x + b.a, 0), bets: bets.map(b => b.v === undefined ? { k: b.k, a: b.a } : { k: b.k, v: b.v, a: b.a }), cum: C.roul.cum };
+  }
+  if (data.a > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
+  S.casBusy = true; S.casRes = null; render(); spinStart(data.g); buzz(15);
+  const ref = doc(collection(db,'cas'));
+  try {
+    const bt = writeBatch(db);
+    bt.set(ref, { uid: S.user.uid, name: S.profile.name || '', ...data, t: serverTimestamp(), st:'spin' });
+    bt.update(doc(db,'users',S.user.uid), { points: increment(-data.a) });
+    await bt.commit();
+    const snap = await getDocFromServer(ref), s = { id: ref.id, ...snap.data() };
+    const r = pickR(rndOf(s.t), s.cum), pay = casPay(s, r);
+    let at;
+    if (s.g === 'wheel') { const sl = wheelSlots(C.wheel.segs).filter(x => x.j === r), x = sl[Math.floor(Math.random() * sl.length)];
+      at = x.a0 + (x.a1 - x.a0) * (.2 + Math.random() * .6); }
+    else { const x = roulSlots(C.roul.w).find(p => p.n === r); at = x.a0 + (x.a1 - x.a0) * (.35 + Math.random() * .3); }
+    await spinStop(at);
+    await casSettle(s, r, pay);
+    Object.assign(s, { st:'done', r, pay });
+    S.casHist = [s, ...(S.casHist || [])];
+    S.casRes = { g: s.g, r, pay, a: s.a, segs: s.g === 'wheel' ? C.wheel.segs : null };
+    if (pay > s.a) { confetti(pay >= s.a * 5 ? 1.3 : .6); buzz([40, 50, 90]); }
+    else if (pay > 0) buzz(30); else buzz(70);
+  } catch(e){
+    SPIN.on = false;
+    const cfgErr = e.code === 'permission-denied' && JSON.stringify(casCfg()) !== JSON.stringify(C);
+    toast(cfgErr ? 'Bookmaker zrovna změnil nastavení kasina. Zkus to znovu.' : errTxt(e), true);
+    S.casResumed = false;
+  }
+  S.casBusy = false; render();
+}
+function rBet(k, v){
+  if (S.casBusy) return;
+  const b = { k }; if (v !== undefined && v !== '') b.v = +v;
+  const key = rbKey(b), ex = S.casBets.find(x => rbKey(x) === key);
+  if (!ex && S.casBets.length >= 10) { toast('Najednou můžeš vsadit nejvýš na 10 políček.', true); return; }
+  const tot = S.casBets.reduce((a, x) => a + x.a, 0) + S.casChip;
+  if (tot > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
+  if (ex) ex.a += S.casChip; else S.casBets.push({ ...b, a: S.casChip });
+  S.casStack.push({ key, a: S.casChip }); S.casRes = null; buzz(8); render();
+}
+function rUndo(){
+  const l = S.casStack.pop(); if (!l) return;
+  const ex = S.casBets.find(x => rbKey(x) === l.key); if (ex) { ex.a -= l.a; if (ex.a <= 0) S.casBets = S.casBets.filter(x => x !== ex); }
+  S.casRes = null; render();
+}
+
+// ---------- obrazovka hráče ----------
+function casinoBanner(){
+  if (!S.cfg.casino?.on) return '';
+  return `<button class="casban" data-act="tab" data-t="casino"><span class="cb-i">${ic('dices')}</span><span><b>Kasino</b><small>Kolo štěstí a ruleta</small></span><span class="btn pri sm">Hrát</span></button>`;
+}
+function casHistHtml(){
+  const h = (S.casHist || []).filter(s => s.st === 'done').slice(0, 8);
+  if (!h.length) return '';
+  return `<h2 style="margin-top:22px">Poslední hry</h2><div class="card cas-hist">${h.map(s => {
+    const res = s.g === 'wheel' ? `<span class="cx">${fmtX(s.m[s.r])}</span>` : `<span class="rn ${rlCol(s.r)}">${s.r}</span>`;
+    const net = s.pay - s.a;
+    return `<div class="ch-r">${res}<span class="t"><b>${s.g === 'wheel' ? 'Kolo štěstí' : 'Ruleta'}</b><small>vklad ${fmtN(s.a)} b · ${fmtDate(s.t)}</small></span><b class="${net > 0 ? 'pos' : net < 0 ? 'neg' : ''}">${net > 0 ? '+' : ''}${fmtN(net)} b</b></div>`; }).join('')}</div>`;
+}
+function casResHtml(){
+  const r = S.casRes;
+  if (S.casBusy) return `<div class="cas-res spin">Točí se…</div>`;
+  if (!r) return `<div class="cas-res idle">${S.casG === 'wheel' ? 'Vsaď a roztoč kolo' : 'Polož žetony a roztoč ruletu'}</div>`;
+  const what = r.g === 'wheel' ? `Padlo <b>${fmtX(r.segs[r.r].m)}</b>` : `Padlo <span class="rn ${rlCol(r.r)}">${r.r}</span>`;
+  return `<div class="cas-res ${r.pay > r.a ? 'win' : r.pay > 0 ? 'back' : 'lose'}">${what}<span>${r.pay > 0 ? `Výhra <b>${fmtN(r.pay)} b</b>` : 'Tentokrát nic'}</span></div>`;
+}
+function viewWheel(C){
+  const segs = C.wheel.segs, W = segs.reduce((a, s) => a + s.w, 0);
+  const legend = segs.map((s, j) => s.w > 0 ? `<span class="lg"><i style="background:${segColor(segs, j)}"></i>${fmtX(s.m)}<small>${pctS(s.w / W, 0)}</small></span>` : '').join('');
+  const a = parseInt(S.casAmt) || 0;
+  return `<div class="cas-stage">${wheelSvg(C.wheel)}</div>${casResHtml()}
+    <div class="lgs">${legend}</div>
+    <div class="cas-bar"><label for="cas_a" class="mut" style="font-size:13px">Vklad</label>
+      <div class="row" style="gap:8px;align-items:stretch"><input id="cas_a" type="number" inputmode="numeric" min="1" value="${esc(S.casAmt)}" ${S.casBusy ? 'disabled' : ''}>
+      ${[10, 50, 100].map(v => `<button class="btn sm" data-act="casamt" data-v="${v}" ${S.casBusy ? 'disabled' : ''}>${v}</button>`).join('')}<button class="btn sm" data-act="casamt" data-v="max" ${S.casBusy ? 'disabled' : ''}>Vše</button></div>
+      <button class="btn pri full big" id="cas_go" data-act="casspin" ${S.casBusy || !C.on ? 'disabled' : ''} style="margin-top:10px">${S.casBusy ? 'Točí se…' : `Roztočit za ${fmtN(a)} b`}</button></div>`;
+}
+function viewRoul(C){
+  const bet = key => S.casBets.find(b => rbKey(b) === key), res = S.casRes && S.casRes.g === 'roul' ? S.casRes.r : null;
+  const cell = (k, v, lab, cls = '') => { const b = bet(k + (v ?? '')), win = res !== null && rbWin({ k, v }, res) > 0;
+    return `<button class="rc ${cls}${win ? ' win' : ''}${k === 'n' && v === res ? ' hit' : ''}" data-act="rbet" data-k="${k}" data-v="${v ?? ''}" ${S.casBusy ? 'disabled' : ''}>${lab}${b ? `<i class="chip">${fmtN(b.a)}</i>` : ''}</button>`; };
+  const nums = []; for (let n = 1; n <= 36; n++) nums.push(cell('n', n, n, rlCol(n)));
+  const tot = S.casBets.reduce((a, b) => a + b.a, 0);
+  return `<div class="cas-stage">${roulSvg(C.roul)}</div>${casResHtml()}
+    <div class="rboard">${cell('n', 0, '0', 'g z')}${nums.join('')}
+      ${[0, 1, 2].map(v => cell('col', v, '2:1', 'o')).join('')}</div>
+    <div class="rboard o3">${[0, 1, 2].map(v => cell('doz', v, ['1–12', '13–24', '25–36'][v], 'o')).join('')}
+      ${['low', 'even', 'red', 'black', 'odd', 'high'].map(k => cell(k, undefined, k === 'red' ? '<i class="dm r"></i>' : k === 'black' ? '<i class="dm b"></i>' : RB_LAB[k], 'o')).join('')}</div>
+    <div class="cas-bar"><div class="chips-row">${[1, 5, 10, 25, 100].map(v => `<button class="cchip ${S.casChip === v ? 'on' : ''}" data-act="rchip" data-v="${v}" aria-label="Žeton ${v} b">${v}</button>`).join('')}
+      <span style="flex:1"></span><button class="icb" data-act="rundo" aria-label="Vrátit poslední žeton" ${S.casBusy || !S.casStack.length ? 'disabled' : ''}>${ic('undo-2')}</button><button class="icb" data-act="rclear" aria-label="Smazat sázky" ${S.casBusy || !tot ? 'disabled' : ''}>${ic('eraser')}</button></div>
+      <button class="btn pri full big" data-act="casspin" ${S.casBusy || !C.on || !tot ? 'disabled' : ''} style="margin-top:10px">${S.casBusy ? 'Točí se…' : tot ? `Roztočit · vsazeno ${fmtN(tot)} b` : 'Klepnutím na stůl polož žeton'}</button></div>`;
+}
+function viewCasino(){
+  const C = casCfg();
+  if (!S.casResumed && S.user) casResume();
+  const closed = !C.on ? `<div class="card" style="border-color:var(--line)"><b>Kasino je teď zavřené</b><div class="mut">${isAdmin() ? 'Hráči ho nevidí. Otevřeš ho v Admin › Více › Kasino.' : 'Bookmaker ho brzy zase otevře.'}</div></div>` : '';
+  return `<button class="back" data-act="tab" data-t="markets">${ic('chevron-left')}Sázky</button>
+    <div class="row sp" style="margin-top:4px"><h1 style="margin:0">Kasino</h1><button class="icb" data-act="casinfo" aria-label="Pravidla a šance">${ic('info')}</button></div>
+    <div class="seg" style="margin-top:12px">${[['wheel', 'Kolo štěstí'], ['roul', 'Ruleta']].map(([k, t]) => `<button class="${S.casG === k ? 'on' : ''}" data-act="casg" data-g="${k}" ${S.casBusy ? 'disabled' : ''}>${t}</button>`).join('')}</div>
+    ${closed}${S.casG === 'wheel' ? viewWheel(C) : viewRoul(C)}${casHistHtml()}`;
+}
+function openCasInfo(){
+  const C = casCfg(), segs = C.wheel.segs, W = segs.reduce((a, s) => a + s.w, 0), w = C.roul.w, RW = w.reduce((a, b) => a + b, 0);
+  const pN = w.slice(1).map(x => x / RW), same = pN.every(x => Math.abs(x - pN[0]) < 1e-9);
+  openModal(`<h1>Pravidla a šance</h1>
+    <h2>Kolo štěstí</h2><div class="mut" style="margin:-4px 0 8px">Vklad se vynásobí tím, co padne pod šipkou. Velikost políček na kole odpovídá šanci.</div>
+    <div class="card" style="background:var(--card2)">${segs.filter(s => s.w > 0).map(s => `<div class="inf-r"><span>${fmtX(s.m)}</span><b>${pctS(s.w / W)}</b></div>`).join('')}</div>
+    <h2>Ruleta</h2><div class="mut" style="margin:-4px 0 8px">Výhra včetně vkladu. Nula nevyhrává pro barvy, sudá/lichá, poloviny, tucty ani sloupce.</div>
+    <div class="card" style="background:var(--card2)"><div class="inf-r"><span>Číslo</span><b>36×</b></div><div class="inf-r"><span>Tucet, sloupec</span><b>3×</b></div><div class="inf-r"><span>Barva, sudá/lichá, 1–18, 19–36</span><b>2×</b></div>
+      <div class="inf-r"><span>Šance na nulu</span><b>${pctS(w[0] / RW)}</b></div><div class="inf-r"><span>Šance na ${same ? 'každé číslo 1–36' : 'čísla 1–36'}</span><b>${same ? pctS(pN[0], 2) : pctS(Math.min(...pN), 2) + ' až ' + pctS(Math.max(...pN), 2)}</b></div></div>
+    <div class="mut" style="margin-top:10px">Výsledek určuje čas, kdy server zapíše tvoji hru, na miliontinu vteřiny. Nikdo, ani bookmaker, ho dopředu nezná.</div>
+    <button class="btn full" style="margin-top:12px" data-act="close">Zavřít</button>`);
+}
+
+// ---------- admin: nastavení kasina ----------
+function openCasSet(draft){
+  const C = casCfg();
+  const d = draft || { on: C.on, segs: C.wheel.segs.map(s => ({ ...s })), rw: [...C.roul.w], ew: 20, er: 20 };
+  openModal(`<div id="casset"><h1>Kasino</h1>
+    <label class="ck"><input type="checkbox" id="cs_on" ${d.on ? 'checked' : ''}><span>Kasino je otevřené</span></label>
+    <h2 style="margin-top:16px">Kolo štěstí</h2>
+    <div class="mut" style="margin:-4px 0 8px">Násobek = kolikrát se vrátí vklad (0 = prohra). Počet políček určuje, jak často padá.</div>
+    <div class="cs-h"><span>Násobek</span><span>Políček</span><span>Šance</span><span></span></div>
+    ${d.segs.map((s, i) => `<div class="cs-r"><input id="cs_m${i}" type="number" inputmode="decimal" step="0.1" min="0" value="${s.m}"><input id="cs_w${i}" type="number" inputmode="numeric" min="0" step="1" value="${s.w}"><span id="cs_p${i}" class="mut"></span><button class="lnk" data-act="casrm" data-i="${i}" aria-label="Odebrat">${ic('trash-2')}</button></div>`).join('')}
+    <button class="btn sm" data-act="casadd" ${d.segs.length >= 24 ? 'disabled' : ''}>${ic('plus')}Přidat políčko</button>
+    <div class="cs-sum" id="cs_ws"></div>
+    <div class="row" style="gap:8px;align-items:center"><span class="mut">Chci výhodu</span><input id="cs_ew" type="number" inputmode="decimal" style="width:72px" value="${d.ew}"><span class="mut">%</span><button class="btn sm" data-act="casedgew">Dopočítat políčka 0×</button></div>
+    <h2 style="margin-top:18px">Ruleta</h2>
+    <div class="mut" style="margin:-4px 0 8px">Výplaty jsou pevné (číslo 36×, tucet 3×, barva 2×). Výhodu dělá to, jak často padá nula. Políčko nuly je na kole tak velké, jak často padá.</div>
+    <div class="row" style="gap:8px;align-items:center"><label for="cs_z" style="margin:0">Nula padá jako</label><input id="cs_z" type="number" inputmode="numeric" min="0" step="1" style="width:72px" value="${d.rw[0]}"><span class="mut">čísel</span></div>
+    <details style="margin-top:8px"><summary class="mut">Upravit šanci jednotlivých čísel</summary><div class="cs-grid">${d.rw.slice(1).map((x, i) => `<label class="${rlCol(i + 1)}"><span>${i + 1}</span><input id="cs_n${i + 1}" type="number" inputmode="numeric" min="0" step="1" value="${x}"></label>`).join('')}</div></details>
+    <div class="cs-sum" id="cs_rs"></div>
+    <div class="row" style="gap:8px;align-items:center"><span class="mut">Chci výhodu</span><input id="cs_er" type="number" inputmode="decimal" style="width:72px" value="${d.er}"><span class="mut">%</span><button class="btn sm" data-act="casedger">Dopočítat nulu</button></div>
+    <h2 style="margin-top:18px">Jak to jde</h2><div id="cs_st" class="card" style="background:var(--card2)"><span class="mut">Načítám…</span></div>
+    <div class="row" style="margin-top:14px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="cassave">Uložit</button></div></div>`, { keep:true, cas: d });
+  casSetCalc(); casStats();
+}
+function casRead(){
+  const d = S.ctx?.cas; if (!d) return null;
+  const num = (id, f) => { const el = document.getElementById(id); return el ? f(el.value) : null; };
+  d.on = document.getElementById('cs_on').checked;
+  d.segs = d.segs.map((s, i) => ({ m: Math.max(0, Math.round((num('cs_m' + i, parseFloat) || 0) * 100) / 100), w: Math.max(0, num('cs_w' + i, v => parseInt(v)) || 0) }));
+  d.rw[0] = Math.max(0, parseInt(document.getElementById('cs_z').value) || 0);
+  for (let n = 1; n <= 36; n++) d.rw[n] = Math.max(0, parseInt(document.getElementById('cs_n' + n).value) || 0);
+  d.ew = parseFloat(String(document.getElementById('cs_ew').value).replace(',', '.')) || 0;
+  d.er = parseFloat(String(document.getElementById('cs_er').value).replace(',', '.')) || 0;
+  return d;
+}
+function rtpRoul(w){
+  const W = w.reduce((a, b) => a + b, 0); if (!W) return null;
+  const sum = f => { let s = 0; for (let n = 1; n <= 36; n++) if (f(n)) s += w[n]; return s / W; };
+  const types = [['Číslo', null], ['Červená', n => RL_RED.includes(n), 2], ['Černá', n => !RL_RED.includes(n), 2], ['Sudá', n => n % 2 === 0, 2], ['Lichá', n => n % 2 === 1, 2],
+    ['1–18', n => n <= 18, 2], ['19–36', n => n >= 19, 2], ...[0, 1, 2].map(v => [`${['1–12', '13–24', '25–36'][v]}`, n => Math.trunc((n - 1) / 12) === v, 3]), ...[0, 1, 2].map(v => [`${v + 1}. sloupec`, n => (n - 1) % 3 === v, 3])];
+  const nums = []; for (let n = 1; n <= 36; n++) nums.push(36 * w[n] / W);
+  return types.map(([t, f, m]) => f ? [t, m * sum(f), m * sum(f)] : [t, Math.min(...nums), Math.max(...nums)]);
+}
+function casSetCalc(){
+  const d = casRead(); if (!d) return;
+  const W = d.segs.reduce((a, s) => a + s.w, 0), rtp = W ? d.segs.reduce((a, s) => a + s.w * s.m, 0) / W : 0;
+  d.segs.forEach((s, i) => { const el = document.getElementById('cs_p' + i); if (el) el.textContent = W && s.w ? pctS(s.w / W) : '–'; });
+  const edge = x => `<b class="${x < 0 ? 'neg' : 'pos'}">${pctS(1 - x)}</b>`;
+  const ws = document.getElementById('cs_ws');
+  if (ws) ws.innerHTML = W ? `Hráči v průměru dostanou zpět ${pctS(rtp)} vkladů. Tvoje výhoda ${edge(rtp)}.${rtp > 1 ? ' <span class="neg">Kolo by bylo pro hráče výdělečné.</span>' : ''}` : '<span class="neg">Kolo musí mít aspoň jedno políčko.</span>';
+  const R = rtpRoul(d.rw), rs = document.getElementById('cs_rs');
+  if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
+}
+async function casStats(){
+  const el = () => document.getElementById('cs_st');
+  try {
+    const q = await getDocs(collection(db,'cas')), L = q.docs.map(x => x.data()).filter(s => s.st === 'done');
+    if (!el()) return;
+    if (!L.length) { el().innerHTML = '<span class="mut">Zatím se nehrálo.</span>'; return; }
+    const row = (t, f) => { const g = L.filter(f), a = g.reduce((x, s) => x + s.a, 0), p = g.reduce((x, s) => x + s.pay, 0), pl = new Set(g.map(s => s.uid)).size;
+      return g.length ? `<div class="inf-t">${t}</div><div class="inf-r"><span>Her / hráčů</span><b>${fmtN(g.length)} / ${pl}</b></div><div class="inf-r"><span>Vsazeno</span><b>${fmtN(a)} b</b></div><div class="inf-r"><span>Vyplaceno</span><b>${fmtN(p)} b</b></div><div class="inf-r"><span>Tvůj zisk</span><b class="${a - p >= 0 ? 'pos' : 'neg'}">${a - p >= 0 ? '+' : ''}${fmtN(a - p)} b (${pctS(a ? (a - p) / a : 0)})</b></div>` : ''; };
+    el().innerHTML = row('Kolo štěstí', s => s.g === 'wheel') + row('Ruleta', s => s.g === 'roul');
+  } catch(e){ if (el()) el().innerHTML = `<span class="mut">${esc(errTxt(e))}</span>`; }
+}
+async function casSave(){
+  const d = casRead(); if (!d) return;
+  const segs = d.segs.filter(s => s.w > 0);
+  if (!segs.length) { toast('Kolo musí mít aspoň jedno políčko.', true); return; }
+  if (!d.rw.some(x => x > 0)) { toast('Ruleta musí mít aspoň jedno číslo.', true); return; }
+  const casino = { on: d.on, wheel: { segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { w: d.rw, cum: cumOf(d.rw) } };
+  const was = !!S.cfg.casino?.on;
+  try { await updateDoc(doc(db,'config','main'), { casino }); S.cfg.casino = casino;
+    const W = segs.reduce((a, s) => a + s.w, 0), rtp = segs.reduce((a, s) => a + s.w * s.m, 0) / W;
+    logA('Kasino', `${d.on ? 'otevřeno' : 'zavřeno'}; kolo výhoda ${pctS(1 - rtp)}; nula ${d.rw[0]}×`);
+    if (d.on && !was) pushAll('Kasino je otevřené', 'V Riskobetu teď najdeš kolo štěstí a ruletu.', 'slot_machine');
+    closeModal(); toast(d.on ? 'Kasino uloženo a otevřené' : 'Kasino uloženo, hráčům je zavřené'); }
+  catch(e){ toast(errTxt(e), true); }
+}
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'cas_a') { S.casAmt = t.value; const b = document.getElementById('cas_go'); if (b && !S.casBusy) b.textContent = `Roztočit za ${fmtN(parseInt(t.value) || 0)} b`; }
+  else if (t.closest && t.closest('#casset')) casSetCalc();
+});
+
 /* ================== EVENTY ================== */
 document.addEventListener('change', e => { if (e.target.id === 'cb_m') cbOptions(); });
 document.addEventListener('input', e => {
@@ -2976,6 +3392,26 @@ document.addEventListener('click', async e => {
   const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
   const a = t.dataset.act, d = t.dataset;
   switch (a) {
+    /* ---- Riskobet 2.2: kasino ---- */
+    case 'casg': if (S.casBusy) break; S.casG = d.g; S.casRes = null; render(); break;
+    case 'casamt': S.casAmt = d.v === 'max' ? S.profile.points : +d.v; render(); break;
+    case 'casspin': casSpin(); break;
+    case 'casinfo': openCasInfo(); break;
+    case 'rchip': S.casChip = +d.v; render(); break;
+    case 'rbet': rBet(d.k, d.v); break;
+    case 'rundo': rUndo(); break;
+    case 'rclear': S.casBets = []; S.casStack = []; S.casRes = null; render(); break;
+    case 'casset': S.ctx = null; openCasSet(); break;
+    case 'casadd': { const dd = casRead(); dd.segs.push({ m: 1, w: 1 }); openCasSet(dd); break; }
+    case 'casrm': { const dd = casRead(); dd.segs.splice(+d.i, 1); if (!dd.segs.length) dd.segs.push({ m: 0, w: 1 }); openCasSet(dd); break; }
+    case 'casedgew': { const dd = casRead(), ee = Math.min(.95, Math.max(-.5, dd.ew / 100));
+      const nz = dd.segs.filter(s => s.m > 0), N = nz.reduce((a, s) => a + s.w * s.m, 0), Wn = nz.reduce((a, s) => a + s.w, 0);
+      let z = dd.segs.find(s => !(s.m > 0)); if (!z) { z = { m: 0, w: 0 }; dd.segs.unshift(z); }
+      dd.segs.filter(s => !(s.m > 0) && s !== z).forEach(s => { s.w = 0; });
+      z.w = Math.max(0, Math.round(N / (1 - ee) - Wn)); openCasSet(dd); break; }
+    case 'casedger': { const dd = casRead(), ee = Math.min(.95, Math.max(0, dd.er / 100)), o = dd.rw.slice(1).reduce((a, b) => a + b, 0);
+      dd.rw[0] = Math.max(0, Math.round(o / (1 - ee) - o)); openCasSet(dd); break; }
+    case 'cassave': casSave(); break;
     /* ---- Riskobet 2.1 ---- */
     case 'slipmode': S.slipMode = d.m; S.slipSig = ''; renderSlip(); break;
     case 'soloall': S.slip.forEach(s => { S.soloAmt[s.m] = d.v; }); $sheet.querySelectorAll('.solo-amt').forEach(el => { el.value = d.v; }); updSlipTotals(); break;
