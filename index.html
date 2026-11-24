@@ -450,6 +450,9 @@ nav .dot{position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;bor
 .casban{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border-radius:var(--rm);padding:12px 14px;margin:10px 0;background:radial-gradient(circle at 0 50%,rgba(31,157,87,.35),transparent 60%),linear-gradient(90deg,#14130e,var(--card));border:1px solid rgba(255,212,0,.25)}
 .casban>span:nth-child(2){flex:1;min-width:0}.casban small{display:block;color:var(--mut);font-size:12.5px;font-weight:500}
 .casban .cb-i{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--acc);color:var(--ink);font-size:20px;transform:rotate(-8deg)}
+.rc small.pm{position:absolute;left:6px;bottom:3px;font-size:10.5px;font-weight:700;opacity:.85}
+.rc.z small.pm{position:static;margin-left:8px;font-size:13px}
+.rc.z{display:flex;justify-content:center;align-items:center}
 </style>
 </head>
 <body>
@@ -467,7 +470,7 @@ const firebaseConfig = {
   appId: "1:208503709912:web:3ce4e76847ad9d2d81b7ad"
 };
 const ADMIN_USER = "richard";      // přihlašovací jméno admina (musí sedět s firestore.rules)
-const START_POINTS = 1000;         // startovní body (musí sedět s firestore.rules)
+const START_POINTS = 0;         // startovní body (musí sedět s firestore.rules)
 const DOMAIN = "sazkovka.app";     // jen technická koncovka pro Firebase
 const APP_NAME = "Riskobet";
 const AUTO_MS = 150000;
@@ -3031,21 +3034,26 @@ const rlCol = n => n === 0 ? 'g' : RL_RED.includes(n) ? 'r' : 'b';
 const RL_FILL = { g:'#1f9d57', r:'#d63a33', b:'#1b1b19' };
 const RB_LAB = { red:'Červená', black:'Černá', even:'Sudá', odd:'Lichá', low:'1–18', high:'19–36' };
 const W_COLS = ['#3ddc84', '#6aa8ff', '#ff8a1f', '#ffd400', '#ff5449', '#c58bff', '#f5f3ea'];
-const CAS_DEF = () => ({ on:false, wheel:{ segs:[{ m:0, w:14 }, { m:1.5, w:5 }, { m:2, w:3 }, { m:5, w:1 }] }, roul:{ w:[9, ...Array(36).fill(1)] } });
+const CAS_DEF = () => ({ on:false, wheel:{ max:100, segs:[{ m:0, w:14 }, { m:1.5, w:5 }, { m:2, w:3 }, { m:5, w:1 }] }, roul:{ max:100, w:[9, ...Array(36).fill(1)] } });
 // hranice výsledků na škále 0–999 999 (stejný výpočet dělají pravidla Firebase)
 function cumOf(w){ const W = w.reduce((a, b) => a + b, 0), c = [0]; let s = 0;
   w.forEach((x, i) => { s += x; c.push(i === w.length - 1 ? 1000000 : Math.round(1e6 * s / W)); }); return c; }
+// výplata za číslo podle toho, jak často padá: stejná výhoda jako u průměrného čísla (častější nula = menší výplata)
+function pmOf(w){
+  const avg = w.slice(1).reduce((a, b) => a + b, 0) / 36, base = avg > 0 ? avg : w[0];
+  return w.map(x => x > 0 ? Math.floor(36 * base / x * 100) / 100 : 0);
+}
 function casCfg(){
   const c = S.cfg.casino || {}, d = CAS_DEF();
   const wheel = c.wheel?.segs?.length && c.wheel.cum ? c.wheel : { ...d.wheel, m: d.wheel.segs.map(s => s.m), cum: cumOf(d.wheel.segs.map(s => s.w)) };
-  const roul = c.roul?.w?.length === 37 && c.roul.cum ? c.roul : { ...d.roul, cum: cumOf(d.roul.w) };
-  return { on: !!c.on, wheel, roul };
+  const r0 = c.roul?.w?.length === 37 && c.roul.cum ? c.roul : { ...d.roul, cum: cumOf(d.roul.w) }, roul = { ...r0, pm: r0.pm || pmOf(r0.w) };
+  return { on: !!c.on, wheel: { ...wheel, max: wheel.max || 100 }, roul: { ...roul, max: roul.max || 100 } };
 }
 // náhoda = mikrosekundy serverového času zápisu (hráč je neovlivní), promíchané násobením
 const rndOf = t => (Math.floor((t?.nanoseconds || 0) / 1000) * 7919) % 1000000;
 function pickR(R, cum){ for (let i = 0; i < cum.length - 1; i++) if (cum[i] <= R && R < cum[i + 1]) return i; return cum.length - 2; }
-function rbWin(b, n){
-  if (b.k === 'n') return b.v === n ? 36 : 0;
+function rbWin(b, n, pm){
+  if (b.k === 'n') return b.v === n ? (pm ? pm[n] : 36) : 0;
   if (n === 0) return 0;
   if (b.k === 'red') return RL_RED.includes(n) ? 2 : 0;
   if (b.k === 'black') return RL_RED.includes(n) ? 0 : 2;
@@ -3056,7 +3064,7 @@ function rbWin(b, n){
   if (b.k === 'doz') return Math.trunc((n - 1) / 12) === b.v ? 3 : 0;
   return (n - 1) % 3 === b.v ? 3 : 0;
 }
-const casPay = (s, r) => s.g === 'wheel' ? Math.trunc(s.a * s.m[r]) : s.bets.reduce((a, b) => a + b.a * rbWin(b, r), 0);
+const casPay = (s, r) => s.g === 'wheel' ? Math.trunc(s.a * s.m[r]) : Math.trunc(s.bets.reduce((a, b) => a + b.a * rbWin(b, r, s.pm), 0));
 const fmtX = m => String(+(+m).toFixed(2)).replace('.', ',') + '×';
 const pctS = (x, d = 1) => (x * 100).toFixed(d).replace('.', ',') + ' %';
 const rbKey = b => b.k + (b.v ?? '');
@@ -3182,8 +3190,11 @@ async function casSpin(){
     data = { g:'wheel', a, m: C.wheel.m, cum: C.wheel.cum };
   } else {
     const bets = S.casBets.filter(b => b.a > 0); if (!bets.length) { toast('Polož žeton na stůl.', true); return; }
-    data = { g:'roul', a: bets.reduce((x, b) => x + b.a, 0), bets: bets.map(b => b.v === undefined ? { k: b.k, a: b.a } : { k: b.k, v: b.v, a: b.a }), cum: C.roul.cum };
+    data = { g:'roul', a: bets.reduce((x, b) => x + b.a, 0), bets: bets.map(b => b.v === undefined ? { k: b.k, a: b.a } : { k: b.k, v: b.v, a: b.a }), cum: C.roul.cum, pm: C.roul.pm };
+    if (!S.cfg.casino?.roul?.pm) { toast('Bookmaker musí v adminu znovu uložit nastavení kasina.', true); return; }
   }
+  const mx = data.g === 'wheel' ? C.wheel.max : C.roul.max;
+  if (data.a > mx) { toast(`Max. vklad na ${data.g === 'wheel' ? 'kolo štěstí' : 'ruletu'} je ${fmtN(mx)} b.`, true); return; }
   if (data.a > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
   S.casBusy = true; S.casRes = null; render(); spinStart(data.g); buzz(15);
   const ref = doc(collection(db,'cas'));
@@ -3218,7 +3229,8 @@ function rBet(k, v){
   const b = { k }; if (v !== undefined && v !== '') b.v = +v;
   const key = rbKey(b), ex = S.casBets.find(x => rbKey(x) === key);
   if (!ex && S.casBets.length >= 10) { toast('Najednou můžeš vsadit nejvýš na 10 políček.', true); return; }
-  const tot = S.casBets.reduce((a, x) => a + x.a, 0) + S.casChip;
+  const tot = S.casBets.reduce((a, x) => a + x.a, 0) + S.casChip, mx = casCfg().roul.max;
+  if (tot > mx) { toast(`Max. vklad na ruletu je ${fmtN(mx)} b na jedno zatočení.`, true); return; }
   if (tot > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
   if (ex) ex.a += S.casChip; else S.casBets.push({ ...b, a: S.casChip });
   S.casStack.push({ key, a: S.casChip }); S.casRes = null; buzz(8); render();
@@ -3255,15 +3267,15 @@ function viewWheel(C){
   const a = parseInt(S.casAmt) || 0;
   return `<div class="cas-stage">${wheelSvg(C.wheel)}</div>${casResHtml()}
     <div class="lgs">${legend}</div>
-    <div class="cas-bar"><label for="cas_a" class="mut" style="font-size:13px">Vklad</label>
+    <div class="cas-bar"><label for="cas_a" class="mut" style="font-size:13px">Vklad (max. ${fmtN(C.wheel.max)} b)</label>
       <div class="row" style="gap:8px;align-items:stretch"><input id="cas_a" type="number" inputmode="numeric" min="1" value="${esc(S.casAmt)}" ${S.casBusy ? 'disabled' : ''}>
-      ${[10, 50, 100].map(v => `<button class="btn sm" data-act="casamt" data-v="${v}" ${S.casBusy ? 'disabled' : ''}>${v}</button>`).join('')}<button class="btn sm" data-act="casamt" data-v="max" ${S.casBusy ? 'disabled' : ''}>Vše</button></div>
+      ${[10, 50, 100].map(v => `<button class="btn sm" data-act="casamt" data-v="${v}" ${S.casBusy ? 'disabled' : ''}>${v}</button>`).join('')}<button class="btn sm" data-act="casamt" data-v="max" ${S.casBusy ? 'disabled' : ''}>Max</button></div>
       <button class="btn pri full big" id="cas_go" data-act="casspin" ${S.casBusy || !C.on ? 'disabled' : ''} style="margin-top:10px">${S.casBusy ? 'Točí se…' : `Roztočit za ${fmtN(a)} b`}</button></div>`;
 }
 function viewRoul(C){
   const bet = key => S.casBets.find(b => rbKey(b) === key), res = S.casRes && S.casRes.g === 'roul' ? S.casRes.r : null;
-  const cell = (k, v, lab, cls = '') => { const b = bet(k + (v ?? '')), win = res !== null && rbWin({ k, v }, res) > 0;
-    return `<button class="rc ${cls}${win ? ' win' : ''}${k === 'n' && v === res ? ' hit' : ''}" data-act="rbet" data-k="${k}" data-v="${v ?? ''}" ${S.casBusy ? 'disabled' : ''}>${lab}${b ? `<i class="chip">${fmtN(b.a)}</i>` : ''}</button>`; };
+  const cell = (k, v, lab, cls = '') => { const b = bet(k + (v ?? '')), win = res !== null && rbWin({ k, v }, res, C.roul.pm) > 0, pm = k === 'n' ? C.roul.pm[v] : 36;
+    return `<button class="rc ${cls}${win ? ' win' : ''}${k === 'n' && v === res ? ' hit' : ''}" data-act="rbet" data-k="${k}" data-v="${v ?? ''}" ${S.casBusy || (k === 'n' && !pm) ? 'disabled' : ''}>${lab}${pm !== 36 ? `<small class="pm">${pm ? fmtX(pm) : 'nepadá'}</small>` : ''}${b ? `<i class="chip">${fmtN(b.a)}</i>` : ''}</button>`; };
   const nums = []; for (let n = 1; n <= 36; n++) nums.push(cell('n', n, n, rlCol(n)));
   const tot = S.casBets.reduce((a, b) => a + b.a, 0);
   return `<div class="cas-stage">${roulSvg(C.roul)}</div>${casResHtml()}
@@ -3273,7 +3285,7 @@ function viewRoul(C){
       ${['low', 'even', 'red', 'black', 'odd', 'high'].map(k => cell(k, undefined, k === 'red' ? '<i class="dm r"></i>' : k === 'black' ? '<i class="dm b"></i>' : RB_LAB[k], 'o')).join('')}</div>
     <div class="cas-bar"><div class="chips-row">${[1, 5, 10, 25, 100].map(v => `<button class="cchip ${S.casChip === v ? 'on' : ''}" data-act="rchip" data-v="${v}" aria-label="Žeton ${v} b">${v}</button>`).join('')}
       <span style="flex:1"></span><button class="icb" data-act="rundo" aria-label="Vrátit poslední žeton" ${S.casBusy || !S.casStack.length ? 'disabled' : ''}>${ic('undo-2')}</button><button class="icb" data-act="rclear" aria-label="Smazat sázky" ${S.casBusy || !tot ? 'disabled' : ''}>${ic('eraser')}</button></div>
-      <button class="btn pri full big" data-act="casspin" ${S.casBusy || !C.on || !tot ? 'disabled' : ''} style="margin-top:10px">${S.casBusy ? 'Točí se…' : tot ? `Roztočit · vsazeno ${fmtN(tot)} b` : 'Klepnutím na stůl polož žeton'}</button></div>`;
+      <button class="btn pri full big" data-act="casspin" ${S.casBusy || !C.on || !tot ? 'disabled' : ''} style="margin-top:10px">${S.casBusy ? 'Točí se…' : tot ? `Roztočit · vsazeno ${fmtN(tot)} b` : 'Klepnutím na stůl polož žeton'}</button><div class="mut" style="text-align:center;font-size:12.5px;margin-top:6px">Max. vklad ${fmtN(C.roul.max)} b na jedno zatočení</div></div>`;
 }
 function viewCasino(){
   const C = casCfg();
@@ -3288,10 +3300,10 @@ function openCasInfo(){
   const C = casCfg(), segs = C.wheel.segs, W = segs.reduce((a, s) => a + s.w, 0), w = C.roul.w, RW = w.reduce((a, b) => a + b, 0);
   const pN = w.slice(1).map(x => x / RW), same = pN.every(x => Math.abs(x - pN[0]) < 1e-9);
   openModal(`<h1>Pravidla a šance</h1>
-    <h2>Kolo štěstí</h2><div class="mut" style="margin:-4px 0 8px">Vklad se vynásobí tím, co padne pod šipkou. Velikost políček na kole odpovídá šanci.</div>
+    <h2>Kolo štěstí</h2><div class="mut" style="margin:-4px 0 8px">Vklad se vynásobí tím, co padne pod šipkou. Velikost políček na kole odpovídá šanci. Max. vklad ${fmtN(C.wheel.max)} b.</div>
     <div class="card" style="background:var(--card2)">${segs.filter(s => s.w > 0).map(s => `<div class="inf-r"><span>${fmtX(s.m)}</span><b>${pctS(s.w / W)}</b></div>`).join('')}</div>
-    <h2>Ruleta</h2><div class="mut" style="margin:-4px 0 8px">Výhra včetně vkladu. Nula nevyhrává pro barvy, sudá/lichá, poloviny, tucty ani sloupce.</div>
-    <div class="card" style="background:var(--card2)"><div class="inf-r"><span>Číslo</span><b>36×</b></div><div class="inf-r"><span>Tucet, sloupec</span><b>3×</b></div><div class="inf-r"><span>Barva, sudá/lichá, 1–18, 19–36</span><b>2×</b></div>
+    <h2>Ruleta</h2><div class="mut" style="margin:-4px 0 8px">Max. vklad ${fmtN(C.roul.max)} b na jedno zatočení. Výhra včetně vkladu. Nula nevyhrává pro barvy, sudá/lichá, poloviny, tucty ani sloupce.</div>
+    <div class="card" style="background:var(--card2)"><div class="inf-r"><span>Nula</span><b>${fmtX(C.roul.pm[0])}</b></div><div class="inf-r"><span>Číslo 1–36</span><b>${(() => { const p = C.roul.pm.slice(1).filter(x => x > 0), a = Math.min(...p), b = Math.max(...p); return a === b ? fmtX(a) : fmtX(a) + ' až ' + fmtX(b); })()}</b></div><div class="inf-r"><span>Tucet, sloupec</span><b>3×</b></div><div class="inf-r"><span>Barva, sudá/lichá, 1–18, 19–36</span><b>2×</b></div>
       <div class="inf-r"><span>Šance na nulu</span><b>${pctS(w[0] / RW)}</b></div><div class="inf-r"><span>Šance na ${same ? 'každé číslo 1–36' : 'čísla 1–36'}</span><b>${same ? pctS(pN[0], 2) : pctS(Math.min(...pN), 2) + ' až ' + pctS(Math.max(...pN), 2)}</b></div></div>
     <div class="mut" style="margin-top:10px">Výsledek určuje čas, kdy server zapíše tvoji hru, na miliontinu vteřiny. Nikdo, ani bookmaker, ho dopředu nezná.</div>
     <button class="btn full" style="margin-top:12px" data-act="close">Zavřít</button>`);
@@ -3300,18 +3312,20 @@ function openCasInfo(){
 // ---------- admin: nastavení kasina ----------
 function openCasSet(draft){
   const C = casCfg();
-  const d = draft || { on: C.on, segs: C.wheel.segs.map(s => ({ ...s })), rw: [...C.roul.w], ew: 20, er: 20 };
+  const d = draft || { on: C.on, segs: C.wheel.segs.map(s => ({ ...s })), rw: [...C.roul.w], ew: 20, er: 20, wmax: C.wheel.max, rmax: C.roul.max };
   openModal(`<div id="casset"><h1>Kasino</h1>
     <label class="ck"><input type="checkbox" id="cs_on" ${d.on ? 'checked' : ''}><span>Kasino je otevřené</span></label>
     <h2 style="margin-top:16px">Kolo štěstí</h2>
     <div class="mut" style="margin:-4px 0 8px">Násobek = kolikrát se vrátí vklad (0 = prohra). Počet políček určuje, jak často padá.</div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:10px"><label for="cs_wmax" style="margin:0">Max. vklad</label><input id="cs_wmax" type="number" inputmode="numeric" min="1" step="1" style="width:96px" value="${d.wmax}"><span class="mut">b na zatočení</span></div>
     <div class="cs-h"><span>Násobek</span><span>Políček</span><span>Šance</span><span></span></div>
     ${d.segs.map((s, i) => `<div class="cs-r"><input id="cs_m${i}" type="number" inputmode="decimal" step="0.1" min="0" value="${s.m}"><input id="cs_w${i}" type="number" inputmode="numeric" min="0" step="1" value="${s.w}"><span id="cs_p${i}" class="mut"></span><button class="lnk" data-act="casrm" data-i="${i}" aria-label="Odebrat">${ic('trash-2')}</button></div>`).join('')}
     <button class="btn sm" data-act="casadd" ${d.segs.length >= 24 ? 'disabled' : ''}>${ic('plus')}Přidat políčko</button>
     <div class="cs-sum" id="cs_ws"></div>
     <div class="row" style="gap:8px;align-items:center"><span class="mut">Chci výhodu</span><input id="cs_ew" type="number" inputmode="decimal" style="width:72px" value="${d.ew}"><span class="mut">%</span><button class="btn sm" data-act="casedgew">Dopočítat políčka 0×</button></div>
     <h2 style="margin-top:18px">Ruleta</h2>
-    <div class="mut" style="margin:-4px 0 8px">Výplaty jsou pevné (číslo 36×, tucet 3×, barva 2×). Výhodu dělá to, jak často padá nula. Políčko nuly je na kole tak velké, jak často padá.</div>
+    <div class="mut" style="margin:-4px 0 8px">Výhodu dělá to, jak často padá nula. Tucet (3×) a barva (2×) mají pevnou výplatu. Výplata za číslo se počítá podle šance: když nula padá častěji, vyplácí méně, aby se nedala sázkou na nulu obehrát. Políčko nuly je na kole tak velké, jak často padá.</div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:10px"><label for="cs_rmax" style="margin:0">Max. vklad</label><input id="cs_rmax" type="number" inputmode="numeric" min="1" step="1" style="width:96px" value="${d.rmax}"><span class="mut">b na zatočení (všechny žetony dohromady)</span></div>
     <div class="row" style="gap:8px;align-items:center"><label for="cs_z" style="margin:0">Nula padá jako</label><input id="cs_z" type="number" inputmode="numeric" min="0" step="1" style="width:72px" value="${d.rw[0]}"><span class="mut">čísel</span></div>
     <details style="margin-top:8px"><summary class="mut">Upravit šanci jednotlivých čísel</summary><div class="cs-grid">${d.rw.slice(1).map((x, i) => `<label class="${rlCol(i + 1)}"><span>${i + 1}</span><input id="cs_n${i + 1}" type="number" inputmode="numeric" min="0" step="1" value="${x}"></label>`).join('')}</div></details>
     <div class="cs-sum" id="cs_rs"></div>
@@ -3327,17 +3341,21 @@ function casRead(){
   d.segs = d.segs.map((s, i) => ({ m: Math.max(0, Math.round((num('cs_m' + i, parseFloat) || 0) * 100) / 100), w: Math.max(0, num('cs_w' + i, v => parseInt(v)) || 0) }));
   d.rw[0] = Math.max(0, parseInt(document.getElementById('cs_z').value) || 0);
   for (let n = 1; n <= 36; n++) d.rw[n] = Math.max(0, parseInt(document.getElementById('cs_n' + n).value) || 0);
+  d.wmax = Math.max(1, parseInt(document.getElementById('cs_wmax').value) || 100);
+  d.rmax = Math.max(1, parseInt(document.getElementById('cs_rmax').value) || 100);
   d.ew = parseFloat(String(document.getElementById('cs_ew').value).replace(',', '.')) || 0;
   d.er = parseFloat(String(document.getElementById('cs_er').value).replace(',', '.')) || 0;
   return d;
 }
 function rtpRoul(w){
   const W = w.reduce((a, b) => a + b, 0); if (!W) return null;
+  const pm = pmOf(w);
   const sum = f => { let s = 0; for (let n = 1; n <= 36; n++) if (f(n)) s += w[n]; return s / W; };
   const types = [['Číslo', null], ['Červená', n => RL_RED.includes(n), 2], ['Černá', n => !RL_RED.includes(n), 2], ['Sudá', n => n % 2 === 0, 2], ['Lichá', n => n % 2 === 1, 2],
     ['1–18', n => n <= 18, 2], ['19–36', n => n >= 19, 2], ...[0, 1, 2].map(v => [`${['1–12', '13–24', '25–36'][v]}`, n => Math.trunc((n - 1) / 12) === v, 3]), ...[0, 1, 2].map(v => [`${v + 1}. sloupec`, n => (n - 1) % 3 === v, 3])];
-  const nums = []; for (let n = 1; n <= 36; n++) nums.push(36 * w[n] / W);
-  return types.map(([t, f, m]) => f ? [t, m * sum(f), m * sum(f)] : [t, Math.min(...nums), Math.max(...nums)]);
+  const nums = []; for (let n = 1; n <= 36; n++) if (w[n] > 0) nums.push(pm[n] * w[n] / W);
+  const z = w[0] > 0 ? [['Nula (' + fmtX(pm[0]) + ')', pm[0] * w[0] / W, pm[0] * w[0] / W]] : [];
+  return [...z, ...types.map(([t, f, m]) => f ? [t, m * sum(f), m * sum(f)] : [nums.length && Math.min(...pm.slice(1).filter(x => x > 0)) === Math.max(...pm.slice(1).filter(x => x > 0)) ? `Číslo (${fmtX(pm[1] || pm.slice(1).find(x => x > 0))})` : 'Číslo', Math.min(...nums), Math.max(...nums)])];
 }
 function casSetCalc(){
   const d = casRead(); if (!d) return;
@@ -3347,7 +3365,7 @@ function casSetCalc(){
   const ws = document.getElementById('cs_ws');
   if (ws) ws.innerHTML = W ? `Hráči v průměru dostanou zpět ${pctS(rtp)} vkladů. Tvoje výhoda ${edge(rtp)}.${rtp > 1 ? ' <span class="neg">Kolo by bylo pro hráče výdělečné.</span>' : ''}` : '<span class="neg">Kolo musí mít aspoň jedno políčko.</span>';
   const R = rtpRoul(d.rw), rs = document.getElementById('cs_rs');
-  if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
+  if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>${R.some(([, , b]) => b > 1 + 1e-9) ? '<div class="neg" style="margin-top:6px;font-weight:700">Některá sázka by byla pro hráče výdělečná. Takhle to uložit nejde, uprav šance čísel.</div>' : ''}` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
 }
 async function casStats(){
   const el = () => document.getElementById('cs_st');
@@ -3365,11 +3383,13 @@ async function casSave(){
   const segs = d.segs.filter(s => s.w > 0);
   if (!segs.length) { toast('Kolo musí mít aspoň jedno políčko.', true); return; }
   if (!d.rw.some(x => x > 0)) { toast('Ruleta musí mít aspoň jedno číslo.', true); return; }
-  const casino = { on: d.on, wheel: { segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { w: d.rw, cum: cumOf(d.rw) } };
+  if (rtpRoul(d.rw).some(([, , b]) => b > 1 + 1e-9)) { toast('Některá sázka na ruletě by byla pro hráče výdělečná. Uprav šance čísel.', true); return; }
+  { const W = segs.reduce((a, s) => a + s.w, 0); if (segs.reduce((a, s) => a + s.w * s.m, 0) / W > 1) { toast('Kolo by bylo pro hráče výdělečné. Přidej políčka 0× nebo sniž násobky.', true); return; } }
+  const casino = { on: d.on, wheel: { max: d.wmax, segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { max: d.rmax, w: d.rw, cum: cumOf(d.rw), pm: pmOf(d.rw) } };
   const was = !!S.cfg.casino?.on;
   try { await updateDoc(doc(db,'config','main'), { casino }); S.cfg.casino = casino;
     const W = segs.reduce((a, s) => a + s.w, 0), rtp = segs.reduce((a, s) => a + s.w * s.m, 0) / W;
-    logA('Kasino', `${d.on ? 'otevřeno' : 'zavřeno'}; kolo výhoda ${pctS(1 - rtp)}; nula ${d.rw[0]}×`);
+    logA('Kasino', `${d.on ? 'otevřeno' : 'zavřeno'}; max. vklad ${d.wmax}/${d.rmax} b; kolo výhoda ${pctS(1 - rtp)}; nula ${d.rw[0]}×`);
     if (d.on && !was) pushAll('Kasino je otevřené', 'V Riskobetu teď najdeš kolo štěstí a ruletu.', 'slot_machine');
     closeModal(); toast(d.on ? 'Kasino uloženo a otevřené' : 'Kasino uloženo, hráčům je zavřené'); }
   catch(e){ toast(errTxt(e), true); }
@@ -3394,7 +3414,7 @@ document.addEventListener('click', async e => {
   switch (a) {
     /* ---- Riskobet 2.2: kasino ---- */
     case 'casg': if (S.casBusy) break; S.casG = d.g; S.casRes = null; render(); break;
-    case 'casamt': S.casAmt = d.v === 'max' ? S.profile.points : +d.v; render(); break;
+    case 'casamt': S.casAmt = d.v === 'max' ? Math.max(0, Math.min(S.profile.points, casCfg().wheel.max)) : +d.v; render(); break;
     case 'casspin': casSpin(); break;
     case 'casinfo': openCasInfo(); break;
     case 'rchip': S.casChip = +d.v; render(); break;
