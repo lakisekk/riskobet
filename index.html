@@ -453,6 +453,152 @@ nav .dot{position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;bor
 .rc small.pm{position:absolute;left:6px;bottom:3px;font-size:10.5px;font-weight:700;opacity:.85}
 .rc.z small.pm{position:static;margin-left:8px;font-size:13px}
 .rc.z{display:flex;justify-content:center;align-items:center}
+/* ---- 2.3 automat ---- */
+.slot-wrap{margin-top:12px}
+.slot{--cs:60px;position:relative;background:#050505;border-radius:26px;padding:10px 10px 12px;border:2px solid #1d1d1a;
+  box-shadow:0 0 0 3px #000,0 0 0 5px #2b2b26,0 20px 60px rgba(0,0,0,.8),inset 0 0 40px rgba(255,0,140,.08);overflow:hidden}
+.slot.flash{animation:slflash .22s steps(2) infinite}
+@keyframes slflash{50%{box-shadow:0 0 0 3px #000,0 0 0 5px #ffd400,0 0 60px rgba(255,212,0,.6),inset 0 0 60px rgba(255,0,140,.3)}}
+.sl-bulbs{display:flex;justify-content:space-between;padding:2px 6px}
+.sl-bulbs i{width:10px;height:10px;border-radius:50%;background:#333;animation:bulb 1.6s linear infinite;animation-delay:calc(var(--i) * -.1s)}
+@keyframes bulb{0%,100%{background:#ff2e63;box-shadow:0 0 8px #ff2e63}20%{background:#ffd400;box-shadow:0 0 8px #ffd400}40%{background:#3ddc84;box-shadow:0 0 8px #3ddc84}60%{background:#4cc9ff;box-shadow:0 0 8px #4cc9ff}80%{background:#c58bff;box-shadow:0 0 8px #c58bff}}
+.slot.party .sl-bulbs i{animation-duration:.35s}
+.sl-head{text-align:center;padding:4px 0 8px}
+.sl-title{font-weight:900;font-stretch:125%;font-size:34px;letter-spacing:.02em;line-height:1;font-style:italic}
+.sl-title span{color:#fff;text-shadow:0 0 6px #ff2e63,0 0 18px #ff2e63,0 0 34px #ff2e63}
+.sl-title b{margin-left:6px;background:linear-gradient(180deg,#fff6b0,#ffd000 45%,#ff6a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(255,140,0,.8))}
+.slot.party .sl-title{animation:neon .3s steps(2) infinite}
+@keyframes neon{50%{opacity:.55}}
+.sl-sub{color:#8f8d82;font-size:11.5px;font-weight:700;letter-spacing:.08em;margin-top:4px}
+.sl-win{display:flex;align-items:stretch;gap:4px}
+.sl-lns{display:flex;flex-direction:column;justify-content:space-around;width:16px}
+.sl-lns i{font-style:normal;font-size:10px;font-weight:900;color:#000;background:var(--c);border-radius:4px;text-align:center;line-height:15px;box-shadow:0 0 6px var(--c)}
+.sl-reels{position:relative;flex:1;display:flex;gap:6px;padding:6px;border-radius:14px;background:linear-gradient(180deg,#1a0633,#0b0b24 50%,#1a0633);box-shadow:inset 0 0 0 2px #ffd400,inset 0 0 26px rgba(0,0,0,.9),0 0 18px rgba(255,212,0,.25)}
+.sl-reel{position:relative;flex:1;height:calc(var(--cs) * 3);overflow:hidden;border-radius:9px;background:radial-gradient(ellipse at 50% 50%,#2a1460,#120830 70%);box-shadow:inset 0 10px 14px -8px rgba(0,0,0,.9),inset 0 -10px 14px -8px rgba(0,0,0,.9)}
+.sl-reel.tease{box-shadow:0 0 0 2px #ffd400,0 0 22px #ffd400,inset 0 0 20px rgba(255,212,0,.5);animation:tease .25s steps(2) infinite}
+@keyframes tease{50%{box-shadow:0 0 0 2px #ff2e63,0 0 22px #ff2e63,inset 0 0 20px rgba(255,46,99,.5)}}
+.sl-strip{position:absolute;left:0;right:0;top:0}
+.sl-strip.spin{animation:slspin .15s linear infinite;filter:blur(1.6px) brightness(1.15)}
+@keyframes slspin{from{transform:translateY(calc(var(--cs) * -8))}to{transform:translateY(0)}}
+.sl-strip.land{animation:slland .34s cubic-bezier(.25,1.6,.5,1)}
+@keyframes slland{from{transform:translateY(calc(var(--cs) * -.9));filter:blur(2px)}to{transform:none;filter:none}}
+.sl-c{height:var(--cs);display:grid;place-items:center}
+.sl-c svg{width:82%;height:82%;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+.sl-c.hit{animation:slhit .5s ease-in-out infinite alternate;position:relative;z-index:2}
+.sl-c.hit::before{content:"";position:absolute;inset:3px;border-radius:10px;background:radial-gradient(circle,rgba(255,212,0,.5),transparent 70%);box-shadow:0 0 0 2px #ffd400,0 0 16px #ffd400}
+@keyframes slhit{to{transform:scale(1.12)}}
+.sl-lines{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);pointer-events:none;z-index:3}
+.sl-lines polyline{fill:none;stroke-width:5;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 4px currentColor) drop-shadow(0 0 2px #000);stroke-dasharray:16 8;animation:dash .6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+.sl-leds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0 8px}
+.sl-leds div{background:#0d0000;border:1px solid #3a0a0a;border-radius:10px;padding:5px 8px;text-align:center;box-shadow:inset 0 0 12px rgba(0,0,0,.9)}
+.sl-leds small{display:block;color:#a08a6a;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.sl-leds b{display:block;font-variant-numeric:tabular-nums;font-size:19px;font-weight:800;color:#ff3b30;text-shadow:0 0 8px #ff3b30;letter-spacing:.04em}
+.sl-leds div:nth-child(2) b{color:#ffd400;text-shadow:0 0 8px #ffd400}
+.sl-leds .w b{color:#3dff7a;text-shadow:0 0 8px #3dff7a}
+.slot.party .sl-leds .w{animation:neon .25s steps(2) infinite}
+.sl-ctl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px}
+.sl-b{width:46px;height:46px;border-radius:50%;font-size:24px;font-weight:900;color:#fff;background:radial-gradient(circle at 35% 30%,#5a5a52,#1b1b18);border:2px solid #000;box-shadow:0 4px 0 #000,0 0 0 2px #3a3a34;display:grid;place-items:center}
+.sl-b:active{transform:translateY(3px);box-shadow:0 1px 0 #000,0 0 0 2px #3a3a34}
+.sl-b:disabled{opacity:.4}
+.sl-b.auto{width:auto;min-width:62px;padding:0 10px;border-radius:999px;font-size:13px;letter-spacing:.04em;background:radial-gradient(circle at 35% 30%,#4c8dff,#1238a8)}
+.sl-b.auto.on{background:radial-gradient(circle at 35% 30%,#ff6b8b,#b0102e);animation:neon .5s steps(2) infinite}
+.sl-b.snd{font-size:20px;background:radial-gradient(circle at 35% 30%,#a05cff,#4b1394)}
+.sl-spin{width:86px;height:86px;border-radius:50%;border:3px solid #000;background:radial-gradient(circle at 35% 28%,#fff59d,#ffd000 40%,#ff7a00);box-shadow:0 6px 0 #8a3b00,0 0 0 3px #ffd400,0 0 26px rgba(255,180,0,.65);color:#3a1400;font-weight:900;font-size:17px;letter-spacing:.06em;font-stretch:110%}
+.sl-spin:not(:disabled){animation:spinpulse 1.4s ease-in-out infinite}
+@keyframes spinpulse{50%{box-shadow:0 6px 0 #8a3b00,0 0 0 3px #ffd400,0 0 40px rgba(255,180,0,.95)}}
+.sl-spin:active{transform:translateY(4px);box-shadow:0 2px 0 #8a3b00,0 0 0 3px #ffd400}
+.sl-spin:disabled{filter:grayscale(.5) brightness(.7);animation:none}
+.sl-big{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(30,0,60,.88),rgba(0,0,0,.94));z-index:10;text-align:center}
+.sl-big.on{display:flex;animation:bigin .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes bigin{from{transform:scale(.6);opacity:0}}
+.sl-big b{font-size:44px;font-weight:900;font-stretch:125%;font-style:italic;background:linear-gradient(180deg,#fff6b0,#ffd000 45%,#ff5a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,140,0,.9));animation:neon .3s steps(2) infinite}
+.sl-big span{font-size:56px;font-weight:900;color:#3dff7a;text-shadow:0 0 18px #3dff7a;font-variant-numeric:tabular-nums;margin-top:6px}
+.sl-big small{color:#cfc9b8;font-weight:700;letter-spacing:.1em}
+.sl-pay{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sp-r{display:flex;align-items:center;gap:8px;background:#0b0a12;border:1px solid #2a1f45;border-radius:14px;padding:6px 10px 6px 4px}
+.sp-r .sl-c{--cs:46px;width:46px;flex:none}
+.sp-v{display:flex;flex-direction:column;gap:1px;font-size:12.5px;font-variant-numeric:tabular-nums;min-width:0}
+.sp-v span{display:flex;justify-content:space-between;gap:8px;color:#e9e6da}
+.sp-v b{color:#ffd400}
+.sl-lmap{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.sl-lmap div{text-align:center}.sl-lmap svg{width:100%}.sl-lmap small{color:var(--mut);font-size:11px}
+.cs-last{padding:4px 12px;max-height:420px;overflow:auto}
+.lg-r{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.lg-r:last-child{border-bottom:0}
+.lg-r .t{flex:1;min-width:0}.lg-r .t small{display:block;color:var(--mut);font-size:12px}
+.lg-r .v{text-align:right}.lg-r .v small{display:block;color:var(--mut);font-size:12px}
+/* ---- 2.4 blackjack ---- */
+.seg button{font-size:13.5px}
+.bjtable{position:relative;margin-top:12px;border-radius:30px 30px 22px 22px;padding:16px 10px 14px;overflow:hidden;
+  background:radial-gradient(ellipse 120% 80% at 50% 30%,#1c7a45,#0f5530 55%,#073a1f);box-shadow:0 0 0 5px #3b2410,0 0 0 8px #6b4420,inset 0 0 60px rgba(0,0,0,.55),0 20px 50px rgba(0,0,0,.7)}
+.bjtable::before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 30% 20%,rgba(255,255,255,.012) 0 2px,transparent 2px 4px);pointer-events:none}
+.bjshoe{position:absolute;right:14px;top:12px;width:44px;height:58px;border-radius:7px;background:repeating-linear-gradient(135deg,#b3122e 0 5px,#8c0d23 5px 10px);box-shadow:3px 3px 0 #5a0816,0 0 0 2px #fff;transform:rotate(8deg)}
+.bjnote{text-align:center;color:rgba(255,236,170,.75);font-size:11.5px;font-weight:700;letter-spacing:.02em;padding:0 50px}
+.bjd,.bjh{display:flex;justify-content:center;min-height:86px;padding:6px 0 2px}
+.bjh .bjc+.bjc,.bjd .bjc+.bjc{margin-left:-24px}
+.bjc{--w:58px;position:relative;width:var(--w);height:calc(var(--w) * 1.42);border-radius:9px;flex:none;perspective:600px}
+.bjc .in{position:absolute;inset:0;border-radius:9px;background:linear-gradient(160deg,#fff,#f1efe8);box-shadow:0 4px 10px rgba(0,0,0,.45),inset 0 0 0 1px rgba(0,0,0,.12);color:#16161a;padding:5px 6px;display:flex;flex-direction:column;justify-content:space-between}
+.bjc.red .in{color:#d1182f}
+.bjc .fr{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+.bjc .fr b{font-size:15px;font-weight:900;font-stretch:90%}
+.bjc .fr svg{width:11px;height:11px;fill:currentColor;margin-top:2px}
+.bjc .fr.bot{transform:rotate(180deg)}
+.bjc .mid{position:absolute;inset:0;display:grid;place-items:center}
+.bjc .mid svg{width:24px;height:24px;fill:currentColor}
+.bjc .mid .face{font-size:26px;font-weight:900;font-style:italic;font-stretch:120%;background:linear-gradient(180deg,currentColor,currentColor);-webkit-background-clip:text;background-clip:text;text-shadow:0 0 0 currentColor;border:2px solid currentColor;border-radius:8px;padding:2px 8px;opacity:.85}
+.bjc .back{display:none}
+.bjc.ghost{border:2px dashed rgba(255,255,255,.22);border-radius:9px;background:rgba(0,0,0,.08)}
+.bjc.deal{animation:bjdeal .42s cubic-bezier(.2,.9,.3,1.1) both;animation-delay:var(--dl)}
+@keyframes bjdeal{0%{transform:translate(160px,-160px) rotate(25deg) scale(.6);opacity:0}60%{opacity:1}100%{transform:none}}
+.bjc.deal .in{animation:bjflip .42s ease-out both;animation-delay:var(--dl)}
+@keyframes bjflip{0%,45%{background:repeating-linear-gradient(135deg,#b3122e 0 5px,#8c0d23 5px 10px);color:transparent}46%{background:linear-gradient(160deg,#fff,#f1efe8)}}
+.bjtot{text-align:center;min-height:24px}
+.bjtot{display:flex;justify-content:center}
+.bjtot:not(:empty){width:max-content;margin:2px auto 0;background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:14px;padding:3px 12px;border-radius:999px;min-height:0}
+.bjtot.bust{background:#c0182d}
+.bjarc{text-align:center;margin:8px auto 4px;width:92%;border-top:2px solid rgba(255,212,0,.5);border-radius:50% 50% 0 0/22px 22px 0 0;padding-top:8px}
+.bjarc span{display:block;color:#ffd400;font-weight:900;font-size:15px;letter-spacing:.08em;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.bjarc small{color:rgba(255,236,170,.75);font-size:11.5px;font-weight:700;letter-spacing:.05em}
+.bjp{display:flex;justify-content:center;gap:8px;min-height:112px}
+.bjp.split .bjc{--w:52px}
+.bjpw{position:relative;border-radius:16px;padding:0 6px 6px;transition:background .2s}
+.bjpw.act{background:rgba(255,212,0,.13);box-shadow:0 0 0 2px #ffd400}
+.bjpw.r-win,.bjpw.r-bj{box-shadow:0 0 0 2px #3ddc84,0 0 24px rgba(61,220,132,.5)}
+.bjpw.r-lose,.bjpw.r-bust{opacity:.65}
+.bjrr{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) rotate(-8deg);font-weight:900;font-size:17px;letter-spacing:.05em;padding:4px 12px;border-radius:8px;background:#000;color:#fff;white-space:nowrap;animation:chipin .35s cubic-bezier(.2,1.6,.4,1);z-index:3}
+.r-win .bjrr,.r-bj .bjrr{background:#3ddc84;color:#04200f}.r-bj .bjrr{background:#ffd400;color:#0b0a00}.r-push .bjrr{background:#6aa8ff;color:#041530}
+.bjspots{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin-top:6px}
+.bjspot{position:relative;width:74px;height:74px;border-radius:50%;border:2px solid rgba(255,236,170,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,236,170,.85);background:rgba(0,0,0,.12)}
+.bjspot.main{width:92px;height:92px;border-width:3px;border-color:#ffd400}
+.bjspot small{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;position:absolute;bottom:8px}
+.bjspot.sm{width:64px;height:64px}.bjspot.main.sm{width:76px;height:76px}
+.bjspot.sm small{font-size:9px;bottom:4px}
+.bjspot:not(:disabled):active{transform:scale(.95)}
+.bjstk{position:relative;display:grid;place-items:center;margin-top:-10px;animation:chipin .25s cubic-bezier(.2,1.6,.4,1)}
+.bjstk i{width:44px;height:44px;border-radius:50%;background:#ffd400;border:4px dashed #fff;box-shadow:0 3px 0 #a88a00,0 4px 8px rgba(0,0,0,.5)}
+.bjstk b{position:absolute;font-size:12.5px;font-weight:900;color:#0b0a00}
+.bjspot.sm .bjstk i{width:32px;height:32px;border-width:3px}.bjspot.sm .bjstk b{font-size:10.5px}
+.bjchips{display:flex;justify-content:center;gap:10px}
+.cchip.c1{background:#e9e6da;color:#111}.cchip.c5{background:#d63a33;color:#fff}.cchip.c10{background:#2f6fe0;color:#fff}.cchip.c25{background:#1f9d57;color:#fff}.cchip.c50{background:#111;color:#ffd400;border-color:#ffd400}
+.cchip.on{outline:3px solid #ffd400;outline-offset:2px}
+.bjact{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bja{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border-radius:14px;font-weight:800;font-size:13.5px;color:#fff;border:0;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+.bja svg,.bja b{font-size:20px;line-height:1}
+.bja.hit{background:linear-gradient(180deg,#2fbf6b,#168a47)}.bja.stand{background:linear-gradient(180deg,#e3443c,#a81f1a)}
+.bja.dbl{background:linear-gradient(180deg,#ffd400,#d99a00);color:#1a1400}.bja.spl{background:linear-gradient(180deg,#5a8dff,#2b55c7)}
+.bja:disabled{filter:grayscale(1) brightness(.55);box-shadow:none}
+.bja:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+.bjwait{text-align:center;color:var(--mut);font-weight:700;padding:14px 0;animation:caspulse 1s ease-in-out infinite}
+.bjins{text-align:center}.bjins b{display:block;font-size:16px}.bjins span{display:block;color:var(--mut);font-size:13px;margin-top:4px}
+.bjres{margin-top:12px;border-radius:var(--rm);padding:12px 14px;text-align:center;background:var(--card);animation:caswin .5s cubic-bezier(.2,1.6,.4,1)}
+.bjres b{display:block;font-size:20px;font-weight:900}
+.bjres.win{background:linear-gradient(90deg,rgba(61,220,132,.22),var(--card))}.bjres.win b{color:var(--grn)}
+.bjres.lose b{color:var(--mut)}
+.bjres span{display:block;font-size:13px;color:var(--mut);margin-top:3px}.bjres em{font-style:normal;color:var(--grn);font-weight:800}
+.bjbar{position:static;margin-top:12px}
+.bjbar .btn.big{white-space:nowrap;flex:1}
+.bjbar .icb{flex:none;width:46px;height:46px;border-radius:12px;background:var(--card2)}
 </style>
 </head>
 <body>
@@ -494,7 +640,7 @@ const WANT_ADMIN = new URLSearchParams(location.search).has('schvalit');
 
 const SPORTS = { school:['Škola','graduation-cap'], football:['Fotbal','ball'], hockey:['Hokej','hockey'], tt:['Stolní tenis','tt'], mma:['MMA','hand-fist'], reality:['Reality show','tv'], other:['Ostatní','ellipsis'] };
 const sportOf = m => (m && SPORTS[m.sport]) ? m.sport : 'school';
-const IC = {"archive": "<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />", "arrow-right": "<path d=\"M5 12h14\" /><path d=\"m12 5 7 7-7 7\" />", "arrow-up-down": "<path d=\"m21 16-4 4-4-4\" /><path d=\"M17 20V4\" /><path d=\"m3 8 4-4 4 4\" /><path d=\"M7 4v16\" />", "badge-percent": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /><path d=\"m15 9-6 6\" /><path d=\"M9 9h.01\" /><path d=\"M15 15h.01\" />", "ball": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m12 7.7 4.3 3.1-1.65 5h-5.3l-1.65-5z\"/><path d=\"M12 2v5.7M21.5 9.1l-5.2 1.7M17.9 20.1l-3.25-4.3M6.1 20.1l3.25-4.3M2.5 9.1l5.2 1.7\"/>", "ban": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M4.929 4.929 19.07 19.071\" />", "banknote": "<rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"M6 12h.01M18 12h.01\" />", "bell": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" />", "calendar-clock": "<path d=\"M16 14v2.2l1.6 1\" /><path d=\"M16 2v3\" /><path d=\"M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338\" /><path d=\"M3 9h5.859\" /><path d=\"M8 2v3\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />", "cat": "<path d=\"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z\" /><path d=\"M8 14v.5\" /><path d=\"M16 14v.5\" /><path d=\"M11.25 16.25h1.5L12 17l-.75-.75Z\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M18 17V9\" /><path d=\"M13 17V5\" /><path d=\"M8 17v-3\" />", "chevron-left": "<path d=\"m15 18-6-6 6-6\" />", "chevron-right": "<path d=\"m9 18 6-6-6-6\" />", "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />", "circle-dot": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />", "circle-x": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />", "copy": "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />", "dices": "<rect width=\"12\" height=\"12\" x=\"2\" y=\"10\" rx=\"2\" ry=\"2\" /><path d=\"m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6\" /><path d=\"M6 18h.01\" /><path d=\"M10 14h.01\" /><path d=\"M15 6h.01\" /><path d=\"M18 9h.01\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" />", "eraser": "<path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" />", "filter": "<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\" />", "flame": "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />", "form": "<path d=\"M4 14h6\" /><path d=\"M4 2h10\" /><rect x=\"4\" y=\"18\" width=\"16\" height=\"4\" rx=\"1\" /><rect x=\"4\" y=\"6\" width=\"16\" height=\"4\" rx=\"1\" />", "gift": "<path d=\"M12 7v14\" /><path d=\"M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\" /><path d=\"M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5\" /><rect x=\"3\" y=\"7\" width=\"18\" height=\"4\" rx=\"1\" />", "graduation-cap": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\" /><path d=\"M22 10v6\" /><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\" />", "group": "<path d=\"M3 7V5c0-1.1.9-2 2-2h2\" /><path d=\"M17 3h2c1.1 0 2 .9 2 2v2\" /><path d=\"M21 17v2c0 1.1-.9 2-2 2h-2\" /><path d=\"M7 21H5c-1.1 0-2-.9-2-2v-2\" /><rect width=\"7\" height=\"5\" x=\"7\" y=\"7\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"10\" y=\"12\" rx=\"1\" />", "hand-fist": "<path d=\"M12.035 17.012a3 3 0 0 0-3-3l-.311-.002a.72.72 0 0 1-.505-1.229l1.195-1.195A2 2 0 0 1 10.828 11H12a2 2 0 0 0 0-4H9.243a3 3 0 0 0-2.122.879l-2.707 2.707A4.83 4.83 0 0 0 3 14a8 8 0 0 0 8 8h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v2a2 2 0 1 0 4 0\" /><path d=\"M13.888 9.662A2 2 0 0 0 17 8V5A2 2 0 1 0 13 5\" /><path d=\"M9 5A2 2 0 1 0 5 5V10\" /><path d=\"M9 7V4A2 2 0 1 1 13 4V7.268\" />", "history": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />", "hockey": "<path d=\"M13.8 3 9.4 14.6a2.2 2.2 0 0 1-2 1.4H4.6a1.9 1.9 0 0 0 0 3.8h3.6a4.4 4.4 0 0 0 4.1-2.8L17.6 3\"/><ellipse cx=\"18.2\" cy=\"18.4\" rx=\"3.3\" ry=\"1.6\"/>", "home": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "hourglass": "<path d=\"M5 22h14\" /><path d=\"M5 2h14\" /><path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /><path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />", "layout-dashboard": "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" />", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "list": "<path d=\"M3 5h.01\" /><path d=\"M3 12h.01\" /><path d=\"M3 19h.01\" /><path d=\"M8 5h13\" /><path d=\"M8 12h13\" /><path d=\"M8 19h13\" />", "lock": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "log-out": "<path d=\"m16 17 5-5-5-5\" /><path d=\"M21 12H9\" /><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\" />", "megaphone": "<path d=\"M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z\" /><path d=\"M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14\" /><path d=\"M8 6v8\" />", "pause": "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" /><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" />", "pencil": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" />", "play": "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />", "plus": "<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />", "puzzle": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "radio": "<path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\" /><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\" /><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\" /><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "receipt": "<path d=\"M12 17V7\" /><path d=\"M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8\" /><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\" />", "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\" /><path d=\"m14.5 12.5 2-2\" /><path d=\"m11.5 9.5 2-2\" /><path d=\"m8.5 6.5 2-2\" /><path d=\"m17.5 15.5 2-2\" />", "school": "<path d=\"M14 21v-3a2 2 0 0 0-4 0v3\" /><path d=\"M18 4.933V21\" /><path d=\"m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6\" /><path d=\"m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11\" /><path d=\"M6 4.933V21\" /><circle cx=\"12\" cy=\"9\" r=\"2\" />", "scroll-text": "<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "search": "<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />", "settings": "<path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\" /><circle cx=\"12\" cy=\"12\" r=\"3\" />", "share": "<path d=\"M12 2v13\" /><path d=\"m16 6-4-4-4 4\" /><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\" />", "sheet": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /><line x1=\"3\" x2=\"21\" y1=\"9\" y2=\"9\" /><line x1=\"3\" x2=\"21\" y1=\"15\" y2=\"15\" /><line x1=\"9\" x2=\"9\" y1=\"9\" y2=\"21\" /><line x1=\"15\" x2=\"15\" y1=\"9\" y2=\"21\" />", "shield": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "sliders-horizontal": "<path d=\"M10 5H3\" /><path d=\"M12 19H3\" /><path d=\"M14 3v4\" /><path d=\"M16 17v4\" /><path d=\"M21 12h-9\" /><path d=\"M21 19h-5\" /><path d=\"M21 5h-7\" /><path d=\"M8 10v4\" /><path d=\"M8 12H3\" />", "sparkles": "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />", "star": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "target": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /><path d=\"M13 5v2\" /><path d=\"M13 17v2\" /><path d=\"M13 11v2\" />", "trash-2": "<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />", "trending-down": "<path d=\"M16 17h6v-6\" /><path d=\"m22 17-8.5-8.5-5 5L2 7\" />", "trending-up": "<path d=\"M16 7h6v6\" /><path d=\"m22 7-8.5 8.5-5-5L2 17\" />", "triangle-alert": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />", "trophy": "<path d=\"M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2\" /><path d=\"M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2\" /><path d=\"M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3\" /><path d=\"M4 22h16\" /><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /><path d=\"M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3\" />", "tt": "<path d=\"M12.2 15.6a6.7 6.7 0 1 1 3.4-3.4\"/><path d=\"m12.2 15.6 4.9 4.9a2.4 2.4 0 0 0 3.4-3.4l-4.9-4.9\"/><path d=\"M5.6 13.4 13.4 5.6\"/>", "tv": "<path d=\"m17 2-5 5-5-5\" /><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" />", "undo-2": "<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><path d=\"M16 3.128a4 4 0 0 1 0 7.744\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><circle cx=\"9\" cy=\"7\" r=\"4\" />", "view": "<path d=\"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2\" /><path d=\"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><path d=\"M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0\" />", "x": "<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />", "zap": "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\" />"};
+const IC = {"archive": "<rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\" /><path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\" /><path d=\"M10 12h4\" />", "arrow-right": "<path d=\"M5 12h14\" /><path d=\"m12 5 7 7-7 7\" />", "arrow-up-down": "<path d=\"m21 16-4 4-4-4\" /><path d=\"M17 20V4\" /><path d=\"m3 8 4-4 4 4\" /><path d=\"M7 4v16\" />", "badge-percent": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /><path d=\"m15 9-6 6\" /><path d=\"M9 9h.01\" /><path d=\"M15 15h.01\" />", "ball": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m12 7.7 4.3 3.1-1.65 5h-5.3l-1.65-5z\"/><path d=\"M12 2v5.7M21.5 9.1l-5.2 1.7M17.9 20.1l-3.25-4.3M6.1 20.1l3.25-4.3M2.5 9.1l5.2 1.7\"/>", "ban": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M4.929 4.929 19.07 19.071\" />", "banknote": "<rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\" /><circle cx=\"12\" cy=\"12\" r=\"2\" /><path d=\"M6 12h.01M18 12h.01\" />", "bell": "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" />", "calendar-clock": "<path d=\"M16 14v2.2l1.6 1\" /><path d=\"M16 2v3\" /><path d=\"M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338\" /><path d=\"M3 9h5.859\" /><path d=\"M8 2v3\" /><circle cx=\"16\" cy=\"16\" r=\"6\" />", "cat": "<path d=\"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z\" /><path d=\"M8 14v.5\" /><path d=\"M16 14v.5\" /><path d=\"M11.25 16.25h1.5L12 17l-.75-.75Z\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M18 17V9\" /><path d=\"M13 17V5\" /><path d=\"M8 17v-3\" />", "cherry": "<path d=\"M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z\" /><path d=\"M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z\" /><path d=\"M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12\" /><path d=\"M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z\" />", "chevron-left": "<path d=\"m15 18-6-6 6-6\" />", "chevron-right": "<path d=\"m9 18 6-6-6-6\" />", "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />", "circle-dot": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />", "circle-x": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m15 9-6 6\" /><path d=\"m9 9 6 6\" />", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />", "copy": "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />", "dices": "<rect width=\"12\" height=\"12\" x=\"2\" y=\"10\" rx=\"2\" ry=\"2\" /><path d=\"m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6\" /><path d=\"M6 18h.01\" /><path d=\"M10 14h.01\" /><path d=\"M15 6h.01\" /><path d=\"M18 9h.01\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" />", "eraser": "<path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" />", "filter": "<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\" />", "flame": "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />", "form": "<path d=\"M4 14h6\" /><path d=\"M4 2h10\" /><rect x=\"4\" y=\"18\" width=\"16\" height=\"4\" rx=\"1\" /><rect x=\"4\" y=\"6\" width=\"16\" height=\"4\" rx=\"1\" />", "gift": "<path d=\"M12 7v14\" /><path d=\"M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\" /><path d=\"M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5\" /><rect x=\"3\" y=\"7\" width=\"18\" height=\"4\" rx=\"1\" />", "graduation-cap": "<path d=\"M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z\" /><path d=\"M22 10v6\" /><path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\" />", "group": "<path d=\"M3 7V5c0-1.1.9-2 2-2h2\" /><path d=\"M17 3h2c1.1 0 2 .9 2 2v2\" /><path d=\"M21 17v2c0 1.1-.9 2-2 2h-2\" /><path d=\"M7 21H5c-1.1 0-2-.9-2-2v-2\" /><rect width=\"7\" height=\"5\" x=\"7\" y=\"7\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"10\" y=\"12\" rx=\"1\" />", "hand": "<path d=\"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2\" /><path d=\"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2\" /><path d=\"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8\" /><path d=\"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15\" />", "hand-fist": "<path d=\"M12.035 17.012a3 3 0 0 0-3-3l-.311-.002a.72.72 0 0 1-.505-1.229l1.195-1.195A2 2 0 0 1 10.828 11H12a2 2 0 0 0 0-4H9.243a3 3 0 0 0-2.122.879l-2.707 2.707A4.83 4.83 0 0 0 3 14a8 8 0 0 0 8 8h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v2a2 2 0 1 0 4 0\" /><path d=\"M13.888 9.662A2 2 0 0 0 17 8V5A2 2 0 1 0 13 5\" /><path d=\"M9 5A2 2 0 1 0 5 5V10\" /><path d=\"M9 7V4A2 2 0 1 1 13 4V7.268\" />", "history": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />", "hockey": "<path d=\"M13.8 3 9.4 14.6a2.2 2.2 0 0 1-2 1.4H4.6a1.9 1.9 0 0 0 0 3.8h3.6a4.4 4.4 0 0 0 4.1-2.8L17.6 3\"/><ellipse cx=\"18.2\" cy=\"18.4\" rx=\"3.3\" ry=\"1.6\"/>", "home": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "hourglass": "<path d=\"M5 22h14\" /><path d=\"M5 2h14\" /><path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /><path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />", "layout-dashboard": "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\" /><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\" /><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" />", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "list": "<path d=\"M3 5h.01\" /><path d=\"M3 12h.01\" /><path d=\"M3 19h.01\" /><path d=\"M8 5h13\" /><path d=\"M8 12h13\" /><path d=\"M8 19h13\" />", "lock": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "log-out": "<path d=\"m16 17 5-5-5-5\" /><path d=\"M21 12H9\" /><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\" />", "megaphone": "<path d=\"M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z\" /><path d=\"M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14\" /><path d=\"M8 6v8\" />", "pause": "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" /><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\" />", "pencil": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" />", "play": "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />", "plus": "<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />", "puzzle": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "radio": "<path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\" /><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\" /><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\" /><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "receipt": "<path d=\"M12 17V7\" /><path d=\"M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8\" /><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\" />", "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\" /><path d=\"m14.5 12.5 2-2\" /><path d=\"m11.5 9.5 2-2\" /><path d=\"m8.5 6.5 2-2\" /><path d=\"m17.5 15.5 2-2\" />", "school": "<path d=\"M14 21v-3a2 2 0 0 0-4 0v3\" /><path d=\"M18 4.933V21\" /><path d=\"m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6\" /><path d=\"m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11\" /><path d=\"M6 4.933V21\" /><circle cx=\"12\" cy=\"9\" r=\"2\" />", "scroll-text": "<path d=\"M15 12h-5\" /><path d=\"M15 8h-5\" /><path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "search": "<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />", "settings": "<path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\" /><circle cx=\"12\" cy=\"12\" r=\"3\" />", "share": "<path d=\"M12 2v13\" /><path d=\"m16 6-4-4-4 4\" /><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\" />", "sheet": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\" /><line x1=\"3\" x2=\"21\" y1=\"9\" y2=\"9\" /><line x1=\"3\" x2=\"21\" y1=\"15\" y2=\"15\" /><line x1=\"9\" x2=\"9\" y1=\"9\" y2=\"21\" /><line x1=\"15\" x2=\"15\" y1=\"9\" y2=\"21\" />", "shield": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "sliders-horizontal": "<path d=\"M10 5H3\" /><path d=\"M12 19H3\" /><path d=\"M14 3v4\" /><path d=\"M16 17v4\" /><path d=\"M21 12h-9\" /><path d=\"M21 19h-5\" /><path d=\"M21 5h-7\" /><path d=\"M8 10v4\" /><path d=\"M8 12H3\" />", "sparkles": "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />", "split": "<path d=\"M16 3h5v5\" /><path d=\"M8 3H3v5\" /><path d=\"M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3\" /><path d=\"m15 9 6-6\" />", "square": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" />", "star": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "target": "<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />", "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /><path d=\"M13 5v2\" /><path d=\"M13 17v2\" /><path d=\"M13 11v2\" />", "trash-2": "<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />", "trending-down": "<path d=\"M16 17h6v-6\" /><path d=\"m22 17-8.5-8.5-5 5L2 7\" />", "trending-up": "<path d=\"M16 7h6v6\" /><path d=\"m22 7-8.5 8.5-5-5L2 17\" />", "triangle": "<path d=\"M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z\" />", "triangle-alert": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />", "trophy": "<path d=\"M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2\" /><path d=\"M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2\" /><path d=\"M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3\" /><path d=\"M4 22h16\" /><path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /><path d=\"M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3\" />", "tt": "<path d=\"M12.2 15.6a6.7 6.7 0 1 1 3.4-3.4\"/><path d=\"m12.2 15.6 4.9 4.9a2.4 2.4 0 0 0 3.4-3.4l-4.9-4.9\"/><path d=\"M5.6 13.4 13.4 5.6\"/>", "tv": "<path d=\"m17 2-5 5-5-5\" /><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" />", "undo-2": "<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /><circle cx=\"12\" cy=\"7\" r=\"4\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><path d=\"M16 3.128a4 4 0 0 1 0 7.744\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><circle cx=\"9\" cy=\"7\" r=\"4\" />", "view": "<path d=\"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2\" /><path d=\"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><path d=\"M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0\" />", "volume-2": "<path d=\"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z\" /><path d=\"M16 9a5 5 0 0 1 0 6\" /><path d=\"M19.364 18.364a9 9 0 0 0 0-12.728\" />", "volume-x": "<path d=\"M11 4.702a.7.7 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.7.7 0 0 0 11 19.298z\" /><path d=\"m16.5 14.5 5-5\" /><path d=\"m16.5 9.5 5 5\" />", "x": "<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />", "zap": "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\" />"};
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
 const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 Object.assign(S, { adminSub:'home', sport:'all', q:'', qOpen:false, mtOpen:null, aq:'', offF:'live', psort:'pts', meas:null });
@@ -515,7 +661,7 @@ function confetti(power = 1){
   const P = Array.from({ length: Math.round(110 * power) }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 80, y: innerHeight * .42, vx: (Math.random() - .5) * 15, vy: -Math.random() * 15 - 5,
     r: Math.random() * 6 + 4, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
   const t0 = performance.now();
-  (function f(t){ const e = t - t0; x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, innerWidth, innerHeight);
+  (function f(){ const e = performance.now() - t0; x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, innerWidth, innerHeight);
     P.forEach(p => { p.vy += .42; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.a += p.va; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.globalAlpha = Math.max(0, 1 - e / 2600); x.fillStyle = p.c; x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); });
     if (e < 2600) requestAnimationFrame(f); else cv.remove(); })(t0);
 }
@@ -538,7 +684,7 @@ function animatePts(){
   if (from === to) return;
   el.parentElement.classList.add(to > from ? 'gain' : 'loss');
   const t0 = performance.now(), D = 700;
-  (function f(t){ const k = Math.min(1, (t - t0) / D), v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+  (function f(){ const t = performance.now(), k = Math.min(1, Math.max(0, (t - t0) / D)), v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
     const e = document.querySelector('.bal b'); if (e) e.textContent = fmtN(v); if (k < 1) requestAnimationFrame(f); })(t0);
 }
 // ---- notifikace do mobilu (ntfy) ----
@@ -3027,8 +3173,9 @@ function csvPlayers(){
   downloadCsv(`riskobet-pokladna-${new Date().toISOString().slice(0,10)}.csv`, rows);
 }
 
-Object.assign(S, { casG:'wheel', casAmt:20, casChip:10, casBets:[], casStack:[], casBusy:false, casHist:null, casRes:null, casResumed:false, wRot:0, rRot:0, bAng:0, bR:1 });
+Object.assign(S, { casG:'bj', casAmt:20, casChip:10, casBets:[], casStack:[], casBusy:false, casHist:null, casRes:null, casResumed:false, wRot:0, rRot:0, bAng:0, bR:1 });
 const RL_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const CAS_GN = { bj:'Blackjack', slot:'Automat', wheel:'Kolo štěstí', roul:'Ruleta' };
 const RL_RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 const rlCol = n => n === 0 ? 'g' : RL_RED.includes(n) ? 'r' : 'b';
 const RL_FILL = { g:'#1f9d57', r:'#d63a33', b:'#1b1b19' };
@@ -3047,7 +3194,8 @@ function casCfg(){
   const c = S.cfg.casino || {}, d = CAS_DEF();
   const wheel = c.wheel?.segs?.length && c.wheel.cum ? c.wheel : { ...d.wheel, m: d.wheel.segs.map(s => s.m), cum: cumOf(d.wheel.segs.map(s => s.w)) };
   const r0 = c.roul?.w?.length === 37 && c.roul.cum ? c.roul : { ...d.roul, cum: cumOf(d.roul.w) }, roul = { ...r0, pm: r0.pm || pmOf(r0.w) };
-  return { on: !!c.on, wheel: { ...wheel, max: wheel.max || 100 }, roul: { ...roul, max: roul.max || 100 } };
+  const slot = c.slot?.cum ? c.slot : slotCfgOf(.8, 50);
+  return { on: !!c.on, wheel: { ...wheel, max: wheel.max || 100 }, roul: { ...roul, max: roul.max || 100 }, slot: { ...slot, max: slot.max || 50 } };
 }
 // náhoda = mikrosekundy serverového času zápisu (hráč je neovlivní), promíchané násobením
 const rndOf = t => (Math.floor((t?.nanoseconds || 0) / 1000) * 7919) % 1000000;
@@ -3064,7 +3212,7 @@ function rbWin(b, n, pm){
   if (b.k === 'doz') return Math.trunc((n - 1) / 12) === b.v ? 3 : 0;
   return (n - 1) % 3 === b.v ? 3 : 0;
 }
-const casPay = (s, r) => s.g === 'wheel' ? Math.trunc(s.a * s.m[r]) : Math.trunc(s.bets.reduce((a, b) => a + b.a * rbWin(b, r, s.pm), 0));
+const casPay = (s, r) => s.g !== 'roul' ? Math.trunc(s.a * s.m[r]) : Math.trunc(s.bets.reduce((a, b) => a + b.a * rbWin(b, r, s.pm), 0));
 const fmtX = m => String(+(+m).toFixed(2)).replace('.', ',') + '×';
 const pctS = (x, d = 1) => (x * 100).toFixed(d).replace('.', ',') + ' %';
 const rbKey = b => b.k + (b.v ?? '');
@@ -3130,7 +3278,8 @@ function spinPaint(){
 function spinStart(g){
   const s = SPIN; Object.assign(s, { on:true, g, phase:'free', v: g === 'wheel' ? 900 : 420, bv: 620, last: 0 });
   if (g === 'roul') S.bR = 1;
-  const step = t => {
+  const step = () => {
+    const t = performance.now();
     if (!s.on) return;
     const dt = s.last ? Math.min(.05, (t - s.last) / 1000) : 0; s.last = t;
     if (s.phase === 'free') { if (g === 'wheel') S.wRot += s.v * dt; else { S.rRot += s.v * dt; S.bAng -= s.bv * dt; } }
@@ -3244,15 +3393,15 @@ function rUndo(){
 // ---------- obrazovka hráče ----------
 function casinoBanner(){
   if (!S.cfg.casino?.on) return '';
-  return `<button class="casban" data-act="tab" data-t="casino"><span class="cb-i">${ic('dices')}</span><span><b>Kasino</b><small>Kolo štěstí a ruleta</small></span><span class="btn pri sm">Hrát</span></button>`;
+  return `<button class="casban" data-act="tab" data-t="casino"><span class="cb-i">${ic('dices')}</span><span><b>Kasino</b><small>Blackjack, automat, kolo štěstí a ruleta</small></span><span class="btn pri sm">Hrát</span></button>`;
 }
 function casHistHtml(){
   const h = (S.casHist || []).filter(s => s.st === 'done').slice(0, 8);
   if (!h.length) return '';
   return `<h2 style="margin-top:22px">Poslední hry</h2><div class="card cas-hist">${h.map(s => {
-    const res = s.g === 'wheel' ? `<span class="cx">${fmtX(s.m[s.r])}</span>` : `<span class="rn ${rlCol(s.r)}">${s.r}</span>`;
+    const res = s.g === 'slot' ? `<span class="cx">${SL_OUT[s.r]?.s ? SL_OUT[s.r].n + '×' : '–'}</span>` : s.g === 'wheel' ? `<span class="cx">${fmtX(s.m[s.r])}</span>` : `<span class="rn ${rlCol(s.r)}">${s.r}</span>`;
     const net = s.pay - s.a;
-    return `<div class="ch-r">${res}<span class="t"><b>${s.g === 'wheel' ? 'Kolo štěstí' : 'Ruleta'}</b><small>vklad ${fmtN(s.a)} b · ${fmtDate(s.t)}</small></span><b class="${net > 0 ? 'pos' : net < 0 ? 'neg' : ''}">${net > 0 ? '+' : ''}${fmtN(net)} b</b></div>`; }).join('')}</div>`;
+    return `<div class="ch-r">${res}<span class="t"><b>${CAS_GN[s.g]}${s.g === 'slot' && SL_OUT[s.r]?.s ? ' · ' + SL_NAME[SL_OUT[s.r].s] : ''}</b><small>vklad ${fmtN(s.a)} b · ${fmtDate(s.t)}</small></span><b class="${net > 0 ? 'pos' : net < 0 ? 'neg' : ''}">${net > 0 ? '+' : ''}${fmtN(net)} b</b></div>`; }).join('')}</div>`;
 }
 function casResHtml(){
   const r = S.casRes;
@@ -3293,13 +3442,17 @@ function viewCasino(){
   const closed = !C.on ? `<div class="card" style="border-color:var(--line)"><b>Kasino je teď zavřené</b><div class="mut">${isAdmin() ? 'Hráči ho nevidí. Otevřeš ho v Admin › Více › Kasino.' : 'Bookmaker ho brzy zase otevře.'}</div></div>` : '';
   return `<button class="back" data-act="tab" data-t="markets">${ic('chevron-left')}Sázky</button>
     <div class="row sp" style="margin-top:4px"><h1 style="margin:0">Kasino</h1><button class="icb" data-act="casinfo" aria-label="Pravidla a šance">${ic('info')}</button></div>
-    <div class="seg" style="margin-top:12px">${[['wheel', 'Kolo štěstí'], ['roul', 'Ruleta']].map(([k, t]) => `<button class="${S.casG === k ? 'on' : ''}" data-act="casg" data-g="${k}" ${S.casBusy ? 'disabled' : ''}>${t}</button>`).join('')}</div>
-    ${closed}${S.casG === 'wheel' ? viewWheel(C) : viewRoul(C)}${casHistHtml()}`;
+    <div class="seg" style="margin-top:12px">${[['bj', 'Blackjack'], ['slot', 'Automat'], ['wheel', 'Kolo'], ['roul', 'Ruleta']].map(([k, t]) => `<button class="${S.casG === k ? 'on' : ''}" data-act="casg" data-g="${k}" ${S.casBusy || S.slotBusy || S.slotAuto > 0 || S.bjBusy || (S.bj && S.bj.st !== 'done') ? 'disabled' : ''}>${t}</button>`).join('')}</div>
+    ${closed}${S.casG === 'bj' ? viewBJ() : S.casG === 'slot' ? viewSlot() : S.casG === 'wheel' ? viewWheel(C) : viewRoul(C)}${casHistHtml()}`;
 }
 function openCasInfo(){
   const C = casCfg(), segs = C.wheel.segs, W = segs.reduce((a, s) => a + s.w, 0), w = C.roul.w, RW = w.reduce((a, b) => a + b, 0);
   const pN = w.slice(1).map(x => x / RW), same = pN.every(x => Math.abs(x - pN[0]) < 1e-9);
+  const SS = slotStats(C.slot);
   openModal(`<h1>Pravidla a šance</h1>
+    ${bjInfoHtml()}
+    <h2>Automat</h2><div class="mut" style="margin:-4px 0 8px">5 válců, 5 výherních linií. Výhry platí zleva doprava od prvního válce, hvězdy kdekoli. Výherní tabulka je pod automatem. Max. sázka ${fmtN(C.slot.max)} b.</div>
+    <div class="card" style="background:var(--card2)"><div class="inf-r"><span>Návratnost (RTP)</span><b>${pctS(SS.rtp)}</b></div><div class="inf-r"><span>Nějaká výhra padne v</span><b>${pctS(SS.hit, 0)} zatočení</b></div></div>
     <h2>Kolo štěstí</h2><div class="mut" style="margin:-4px 0 8px">Vklad se vynásobí tím, co padne pod šipkou. Velikost políček na kole odpovídá šanci. Max. vklad ${fmtN(C.wheel.max)} b.</div>
     <div class="card" style="background:var(--card2)">${segs.filter(s => s.w > 0).map(s => `<div class="inf-r"><span>${fmtX(s.m)}</span><b>${pctS(s.w / W)}</b></div>`).join('')}</div>
     <h2>Ruleta</h2><div class="mut" style="margin:-4px 0 8px">Max. vklad ${fmtN(C.roul.max)} b na jedno zatočení. Výhra včetně vkladu. Nula nevyhrává pro barvy, sudá/lichá, poloviny, tucty ani sloupce.</div>
@@ -3312,10 +3465,21 @@ function openCasInfo(){
 // ---------- admin: nastavení kasina ----------
 function openCasSet(draft){
   const C = casCfg();
-  const d = draft || { on: C.on, segs: C.wheel.segs.map(s => ({ ...s })), rw: [...C.roul.w], ew: 20, er: 20, wmax: C.wheel.max, rmax: C.roul.max };
+  const BJ = bjCfg();
+  const d = draft || { bmax: BJ.max, bedge: Math.round(BJ.edge * 1000) / 10, on: C.on, segs: C.wheel.segs.map(s => ({ ...s })), rw: [...C.roul.w], ew: 20, er: 20, wmax: C.wheel.max, rmax: C.roul.max, smax: C.slot.max, srtp: Math.round(C.slot.rtp * 1000) / 10 };
   openModal(`<div id="casset"><h1>Kasino</h1>
     <label class="ck"><input type="checkbox" id="cs_on" ${d.on ? 'checked' : ''}><span>Kasino je otevřené</span></label>
-    <h2 style="margin-top:16px">Kolo štěstí</h2>
+    <h2 style="margin-top:16px">Blackjack</h2>
+    <div class="mut" style="margin:-4px 0 8px">Napiš, kolik procent z hlavní sázky má kasino dlouhodobě vydělávat. Systém upraví balíček (méně es a desítek) tak, aby to platilo i při nejlepší hře hráče. Nad zhruba 5,8 % už balíček nestačí a sníží se i výplata za výhru. Hráči složení balíčku vidí v pravidlech.</div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:8px"><label for="cs_bmax" style="margin:0">Max. na hru</label><input id="cs_bmax" type="number" inputmode="numeric" min="1" step="1" style="width:96px" value="${d.bmax}"><span class="mut">b vč. side betů, zdvojení a rozdělení</span></div>
+    <div class="row" style="gap:8px;align-items:center"><label for="cs_bedge" style="margin:0">Výhoda kasina</label><input id="cs_bedge" type="number" inputmode="decimal" min="1" max="30" step="0.5" style="width:84px" value="${d.bedge}"><span class="mut">%</span></div>
+    <div class="cs-sum" id="cs_bs"><span class="mut">Počítám…</span></div>
+    <h2 style="margin-top:18px">Automat</h2>
+    <div class="mut" style="margin:-4px 0 8px">Výherní tabulka je pevná. Návratnost (RTP) určuje, jak často padají výhry. Kolik procent vsazených bodů se hráčům vrátí, zbytek je tvůj zisk. Nejvýš 98 %, takže automat nikdy nevyplatí víc, než vybere.</div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:8px"><label for="cs_smax" style="margin:0">Max. sázka</label><input id="cs_smax" type="number" inputmode="numeric" min="1" step="1" style="width:96px" value="${d.smax}"><span class="mut">b na zatočení</span></div>
+    <div class="row" style="gap:8px;align-items:center"><label for="cs_rtp" style="margin:0">Návratnost (RTP)</label><input id="cs_rtp" type="number" inputmode="decimal" min="1" max="98" step="0.5" style="width:84px" value="${d.srtp}"><span class="mut">%</span></div>
+    <div class="cs-sum" id="cs_ss"></div>
+    <h2 style="margin-top:18px">Kolo štěstí</h2>
     <div class="mut" style="margin:-4px 0 8px">Násobek = kolikrát se vrátí vklad (0 = prohra). Počet políček určuje, jak často padá.</div>
     <div class="row" style="gap:8px;align-items:center;margin-bottom:10px"><label for="cs_wmax" style="margin:0">Max. vklad</label><input id="cs_wmax" type="number" inputmode="numeric" min="1" step="1" style="width:96px" value="${d.wmax}"><span class="mut">b na zatočení</span></div>
     <div class="cs-h"><span>Násobek</span><span>Políček</span><span>Šance</span><span></span></div>
@@ -3331,6 +3495,7 @@ function openCasSet(draft){
     <div class="cs-sum" id="cs_rs"></div>
     <div class="row" style="gap:8px;align-items:center"><span class="mut">Chci výhodu</span><input id="cs_er" type="number" inputmode="decimal" style="width:72px" value="${d.er}"><span class="mut">%</span><button class="btn sm" data-act="casedger">Dopočítat nulu</button></div>
     <h2 style="margin-top:18px">Jak to jde</h2><div id="cs_st" class="card" style="background:var(--card2)"><span class="mut">Načítám…</span></div>
+    <h2 style="margin-top:18px">Poslední hry</h2><div class="mut" style="margin:-4px 0 8px">Posledních 40 her. Číslo vpravo je tvůj zisk (+) nebo ztráta (−) z dané hry.</div><div id="cs_last" class="card cs-last" style="background:var(--card2)"><span class="mut">Načítám…</span></div>
     <div class="row" style="margin-top:14px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="cassave">Uložit</button></div></div>`, { keep:true, cas: d });
   casSetCalc(); casStats();
 }
@@ -3343,6 +3508,10 @@ function casRead(){
   for (let n = 1; n <= 36; n++) d.rw[n] = Math.max(0, parseInt(document.getElementById('cs_n' + n).value) || 0);
   d.wmax = Math.max(1, parseInt(document.getElementById('cs_wmax').value) || 100);
   d.rmax = Math.max(1, parseInt(document.getElementById('cs_rmax').value) || 100);
+  d.bmax = Math.max(1, parseInt(document.getElementById('cs_bmax').value) || 150);
+  d.bedge = parseFloat(String(document.getElementById('cs_bedge').value).replace(',', '.')) || 0;
+  d.smax = Math.max(1, parseInt(document.getElementById('cs_smax').value) || 100);
+  d.srtp = parseFloat(String(document.getElementById('cs_rtp').value).replace(',', '.')) || 0;
   d.ew = parseFloat(String(document.getElementById('cs_ew').value).replace(',', '.')) || 0;
   d.er = parseFloat(String(document.getElementById('cs_er').value).replace(',', '.')) || 0;
   return d;
@@ -3364,18 +3533,30 @@ function casSetCalc(){
   const edge = x => `<b class="${x < 0 ? 'neg' : 'pos'}">${pctS(1 - x)}</b>`;
   const ws = document.getElementById('cs_ws');
   if (ws) ws.innerHTML = W ? `Hráči v průměru dostanou zpět ${pctS(rtp)} vkladů. Tvoje výhoda ${edge(rtp)}.${rtp > 1 ? ' <span class="neg">Kolo by bylo pro hráče výdělečné.</span>' : ''}` : '<span class="neg">Kolo musí mít aspoň jedno políčko.</span>';
+  bjSetCalcLater(d);
+  const ss = document.getElementById('cs_ss');
+  if (ss) { if (!(d.srtp >= 1 && d.srtp <= 98)) ss.innerHTML = '<span class="neg">Návratnost musí být mezi 1 a 98 %.</span>';
+    else { const st = slotStats(slotCfgOf(d.srtp / 100, d.smax)); ss.innerHTML = `Nějaká výhra padne v ${pctS(st.hit, 0)} zatočení. Hráči v průměru dostanou zpět ${pctS(st.rtp)} vkladů. Tvoje výhoda ${edge(st.rtp)}. Největší výhra 100× sázka (${fmtN(d.smax * 100)} b).`; } }
   const R = rtpRoul(d.rw), rs = document.getElementById('cs_rs');
   if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>${R.some(([, , b]) => b > 1 + 1e-9) ? '<div class="neg" style="margin-top:6px;font-weight:700">Některá sázka by byla pro hráče výdělečná. Takhle to uložit nejde, uprav šance čísel.</div>' : ''}` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
 }
 async function casStats(){
   const el = () => document.getElementById('cs_st');
   try {
-    const q = await getDocs(collection(db,'cas')), L = q.docs.map(x => x.data()).filter(s => s.st === 'done');
+    const [q, qb] = await Promise.all([getDocs(collection(db,'cas')), getDocs(collection(db,'bj'))]);
+    const BJL = qb.docs.map(x => x.data()).map(o => ({ ...o, g:'bj', a: o.tot, pay: o.pay || 0, t: o.t0, bjo: o }));
+    const ALL = [...q.docs.map(x => x.data()), ...BJL], L = ALL.filter(s => s.st === 'done');
     if (!el()) return;
     if (!L.length) { el().innerHTML = '<span class="mut">Zatím se nehrálo.</span>'; return; }
     const row = (t, f) => { const g = L.filter(f), a = g.reduce((x, s) => x + s.a, 0), p = g.reduce((x, s) => x + s.pay, 0), pl = new Set(g.map(s => s.uid)).size;
       return g.length ? `<div class="inf-t">${t}</div><div class="inf-r"><span>Her / hráčů</span><b>${fmtN(g.length)} / ${pl}</b></div><div class="inf-r"><span>Vsazeno</span><b>${fmtN(a)} b</b></div><div class="inf-r"><span>Vyplaceno</span><b>${fmtN(p)} b</b></div><div class="inf-r"><span>Tvůj zisk</span><b class="${a - p >= 0 ? 'pos' : 'neg'}">${a - p >= 0 ? '+' : ''}${fmtN(a - p)} b (${pctS(a ? (a - p) / a : 0)})</b></div>` : ''; };
-    el().innerHTML = row('Kolo štěstí', s => s.g === 'wheel') + row('Ruleta', s => s.g === 'roul');
+    const tot = (() => { const a = L.reduce((x, s) => x + s.a, 0), p = L.reduce((x, s) => x + s.pay, 0); return `<div class="inf-r" style="margin-top:6px"><span><b>Celkem</b></span><b class="${a - p >= 0 ? 'pos' : 'neg'}">${a - p >= 0 ? '+' : ''}${fmtN(a - p)} b</b></div>`; })();
+    const last = [...ALL].sort((a, b) => ms(b.t) - ms(a.t)).slice(0, 40);
+    const res = s => s.st !== 'done' ? 'rozehráno' : s.g === 'bj' ? `${bjT(s.bjo.h0) > 21 ? 'přes 21' : bjT(s.bjo.h0)}${s.bjo.sp ? ' + ' + (bjT(s.bjo.h1) > 21 ? 'přes 21' : bjT(s.bjo.h1)) : ''} proti ${bjT(s.bjo.d) > 21 ? 'přes 21' : bjT(s.bjo.d)}` : s.g === 'slot' ? slOutLabel(SL_OUT[s.r]) : s.g === 'wheel' ? fmtX(s.m[s.r]) : `padlo ${s.r}`;
+    el().innerHTML = row('Blackjack', s => s.g === 'bj') + row('Automat', s => s.g === 'slot') + row('Kolo štěstí', s => s.g === 'wheel') + row('Ruleta', s => s.g === 'roul') + tot;
+    const lg = document.getElementById('cs_last');
+    if (lg) lg.innerHTML = last.map(s => { const net = s.st === 'done' ? s.a - s.pay : 0;
+      return `<div class="lg-r"><span class="t"><b>${esc(s.name || '?')}</b><small>${CAS_GN[s.g]} · ${esc(res(s))} · ${fmtDate(s.t)}</small></span><span class="v"><small>${fmtN(s.a)} → ${fmtN(s.pay || 0)} b</small><b class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : ''}${fmtN(net)}</b></span></div>`; }).join('') || '<span class="mut">Zatím se nehrálo.</span>';
   } catch(e){ if (el()) el().innerHTML = `<span class="mut">${esc(errTxt(e))}</span>`; }
 }
 async function casSave(){
@@ -3383,16 +3564,35 @@ async function casSave(){
   const segs = d.segs.filter(s => s.w > 0);
   if (!segs.length) { toast('Kolo musí mít aspoň jedno políčko.', true); return; }
   if (!d.rw.some(x => x > 0)) { toast('Ruleta musí mít aspoň jedno číslo.', true); return; }
+  if (!(d.srtp >= 1 && d.srtp <= 98)) { toast('Návratnost automatu musí být mezi 1 a 98 %.', true); return; }
+  if (!(d.bedge >= 1 && d.bedge <= 30)) { toast('Výhoda blackjacku musí být mezi 1 a 30 %.', true); return; }
+  const bs = bjSolve(d.bedge / 100), bsr = bjSideRtp(bs.cum);
+  if (!(bs.edge >= d.bedge / 100 - .0005 && bs.edge > .005) || bsr.pp >= .98 || bsr.t3 >= .98 || bsr.ins >= .98) { toast('Blackjack by s tímhle nastavením nebyl bezpečně v plusu. Zkus jinou výhodu.', true); return; }
   if (rtpRoul(d.rw).some(([, , b]) => b > 1 + 1e-9)) { toast('Některá sázka na ruletě by byla pro hráče výdělečná. Uprav šance čísel.', true); return; }
   { const W = segs.reduce((a, s) => a + s.w, 0); if (segs.reduce((a, s) => a + s.w * s.m, 0) / W > 1) { toast('Kolo by bylo pro hráče výdělečné. Přidej políčka 0× nebo sniž násobky.', true); return; } }
-  const casino = { on: d.on, wheel: { max: d.wmax, segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { max: d.rmax, w: d.rw, cum: cumOf(d.rw), pm: pmOf(d.rw) } };
+  const casino = { on: d.on, wheel: { max: d.wmax, segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { max: d.rmax, w: d.rw, cum: cumOf(d.rw), pm: pmOf(d.rw) }, slot: slotCfgOf(Math.round(d.srtp * 10) / 1000, d.smax), bj: { max: d.bmax, edge: d.bedge / 100, x: bs.x, wf: bs.wf, cum: bs.cum } };
   const was = !!S.cfg.casino?.on;
   try { await updateDoc(doc(db,'config','main'), { casino }); S.cfg.casino = casino;
     const W = segs.reduce((a, s) => a + s.w, 0), rtp = segs.reduce((a, s) => a + s.w * s.m, 0) / W;
-    logA('Kasino', `${d.on ? 'otevřeno' : 'zavřeno'}; max. vklad ${d.wmax}/${d.rmax} b; kolo výhoda ${pctS(1 - rtp)}; nula ${d.rw[0]}×`);
-    if (d.on && !was) pushAll('Kasino je otevřené', 'V Riskobetu teď najdeš kolo štěstí a ruletu.', 'slot_machine');
+    logA('Kasino', `${d.on ? 'otevřeno' : 'zavřeno'}; blackjack výhoda ${d.bedge} %; automat RTP ${d.srtp} %; max. vklad ${d.smax}/${d.wmax}/${d.rmax} b; kolo výhoda ${pctS(1 - rtp)}; nula ${d.rw[0]}×`);
+    if (d.on && !was) pushAll('Kasino je otevřené', 'V Riskobetu teď najdeš blackjack, automat, kolo štěstí a ruletu.', 'slot_machine');
     closeModal(); toast(d.on ? 'Kasino uloženo a otevřené' : 'Kasino uloženo, hráčům je zavřené'); }
   catch(e){ toast(errTxt(e), true); }
+}
+// výpočet blackjacku v adminu (chvíli trvá, proto se zpožděním)
+let bjCalcT = null;
+function bjSetCalcLater(d){
+  clearTimeout(bjCalcT);
+  bjCalcT = setTimeout(() => {
+    const el = document.getElementById('cs_bs'); if (!el) return;
+    if (!(d.bedge >= 1 && d.bedge <= 30)) { el.innerHTML = '<span class="neg">Výhoda musí být mezi 1 a 30 %.</span>'; return; }
+    const s = bjSolve(d.bedge / 100), sr = bjSideRtp(s.cum), p = bjPOf(s.cum), p10 = p[9] + p[10] + p[11] + p[12];
+    const ok = x => x < .98 ? `<b class="pos">${pctS(1 - x)}</b>` : `<b class="neg">${pctS(1 - x)}</b>`;
+    el.innerHTML = `<div class="cs-rt"><span>Výhoda kasina z hlavní sázky (i když hráč hraje nejlépe, jak jde)</span><b class="pos">${pctS(s.edge, 2)}</b><span>Ze všech vsazených bodů vč. zdvojení a rozdělení</span><b class="pos">asi ${pctS(s.edge * .925, 1)}</b>
+      <span>Eso padá</span><b>${pctS(p[0], 2)} (normálně 7,69 %)</b><span>10, J, Q, K padají</span><b>${pctS(p10, 2)} (normálně 30,77 %)</b>
+      <span>Blackjack platí</span><b>${s.wf === 1 ? '3:2' : String(+(1.5 * s.wf).toFixed(2)).replace('.', ',') + ':1'}</b><span>Běžná výhra platí</span><b>${s.wf === 1 ? '1:1' : String(s.wf).replace('.', ',') + ':1'}</b>
+      <span>Výhoda na Perfect Pairs</span>${ok(sr.pp)}<span>Výhoda na 21+3</span>${ok(sr.t3)}<span>Výhoda na pojištění</span>${ok(sr.ins)}</div>`;
+  }, 250);
 }
 
 document.addEventListener('input', e => {
@@ -3400,6 +3600,667 @@ document.addEventListener('input', e => {
   if (t.id === 'cas_a') { S.casAmt = t.value; const b = document.getElementById('cas_go'); if (b && !S.casBusy) b.textContent = `Roztočit za ${fmtN(parseInt(t.value) || 0)} b`; }
   else if (t.closest && t.closest('#casset')) casSetCalc();
 });
+
+// ---------- výherní tabulka a výsledky ----------
+const SL_SYM = ['cherry', 'lemon', 'orange', 'plum', 'grapes', 'melon', 'seven', 'star'];
+const SL_NAME = { cherry:'Třešně', lemon:'Citron', orange:'Pomeranč', plum:'Švestka', grapes:'Hrozny', melon:'Meloun', seven:'Sedmička', star:'Hvězda' };
+const SL_PAY = { cherry:{ 2:.5, 3:1, 4:2, 5:5 }, lemon:{ 3:1, 4:3, 5:10 }, orange:{ 3:1, 4:3, 5:10 }, plum:{ 3:1, 4:3, 5:10 },
+  grapes:{ 3:2, 4:6, 5:25 }, melon:{ 3:2, 4:6, 5:25 }, seven:{ 3:5, 4:25, 5:100 }, star:{ 3:2, 4:10, 5:50 } };
+// relativní četnost výherních kombinací (prohry se dopočítají podle RTP)
+const SL_W = { cherry:{ 2:1200, 3:500, 4:150, 5:40 }, lemon:{ 3:400, 4:100, 5:20 }, orange:{ 3:400, 4:100, 5:20 }, plum:{ 3:400, 4:100, 5:20 },
+  grapes:{ 3:250, 4:60, 5:12 }, melon:{ 3:250, 4:60, 5:12 }, seven:{ 3:120, 4:25, 5:4 }, star:{ 3:150, 4:25, 5:3 } };
+const SL_OUT = [{ s:null, n:0, m:0, w:0 }];
+SL_SYM.forEach(s => Object.keys(SL_PAY[s]).forEach(n => SL_OUT.push({ s, n: +n, m: SL_PAY[s][n], w: SL_W[s][n] })));
+const SL_LINES = [[1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2], [0, 1, 2, 1, 0], [2, 1, 0, 1, 2]];
+const SL_LCOL = ['#ffd400', '#ff3b6b', '#3ddc84', '#4cc9ff', '#ff8a1f'];
+const SL_FILL = [['cherry', 3], ['lemon', 3], ['orange', 3], ['plum', 3], ['grapes', 2.5], ['melon', 2.5], ['seven', 1.2], ['star', .8]];
+const SL_FT = SL_FILL.reduce((a, x) => a + x[1], 0);
+const slOutLabel = o => o && o.s ? `${o.n}× ${SL_NAME[o.s]}` : 'Nic';
+// pět sedmiček padá vždy s pravděpodobností 0,01 %, ostatní výhry se dopočítají podle RTP
+const SL_P7 = .0001;
+function slotCfgOf(rtp, max){
+  const i7 = SL_OUT.findIndex(o => o.s === 'seven' && o.n === 5), oth = SL_OUT.map((o, i) => i).filter(i => i > 0 && i !== i7);
+  const Sw = oth.reduce((a, i) => a + SL_OUT[i].w, 0), Sqm = oth.reduce((a, i) => a + SL_OUT[i].w / Sw * SL_OUT[i].m, 0);
+  const f = Math.max(0, (rtp - SL_P7 * SL_OUT[i7].m) / Sqm), pr = SL_OUT.map(() => 0);
+  oth.forEach(i => { pr[i] = f * SL_OUT[i].w / Sw; }); pr[i7] = SL_P7; pr[0] = Math.max(0, 1 - SL_P7 - f);
+  return { rtp, max, m: SL_OUT.map(o => o.m), cum: cumOf(pr) };
+}
+function slotStats(sl){
+  let rtp = 0; for (let i = 0; i < sl.m.length; i++) rtp += sl.m[i] * (sl.cum[i + 1] - sl.cum[i]) / 1e6;
+  return { rtp, hit: 1 - sl.cum[1] / 1e6 };
+}
+function slRand(ex){
+  for (let k = 0; k < 200; k++) { let x = Math.random() * SL_FT;
+    for (const [s, w] of SL_FILL) { if ((x -= w) < 0) { if (!ex || !ex.includes(s)) return s; break; } } }
+  return 'lemon';
+}
+function slEval(g){
+  const w = [];
+  SL_LINES.forEach((L, li) => { const s = g[0][L[0]]; if (s === 'star') return; let n = 1; while (n < 5 && g[n][L[n]] === s) n++;
+    const m = SL_PAY[s][n]; if (m) w.push({ li, s, n, m }); });
+  const st = []; g.forEach((c, i) => c.forEach((s, j) => { if (s === 'star') st.push([i, j]); }));
+  if (st.length >= 3) { const n = Math.min(5, st.length); w.push({ s:'star', n, m: SL_PAY.star[n], cells: st }); }
+  return w;
+}
+// poskládá válce tak, aby ukazovaly přesně vylosovaný výsledek (výsledek sám určuje server)
+function slGrid(o){
+  for (let t = 0; t < 20000; t++) {
+    const g = [0, 1, 2, 3, 4].map(() => [null, null, null]);
+    if (o.s && o.s !== 'star') { const L = SL_LINES[Math.floor(Math.random() * 5)];
+      for (let i = 0; i < o.n; i++) g[i][L[i]] = o.s;
+      if (o.n < 5) g[o.n][L[o.n]] = slRand([o.s, 'star']); }
+    if (o.s === 'star') { const r = [0, 1, 2, 3, 4].sort(() => Math.random() - .5).slice(0, o.n); r.forEach(i => { g[i][Math.floor(Math.random() * 3)] = 'star'; }); }
+    for (let i = 0; i < 5; i++) { let st = g[i].includes('star');
+      for (let j = 0; j < 3; j++) if (!g[i][j]) { const s = slRand(st || o.s === 'star' ? ['star'] : null); if (s === 'star') st = true; g[i][j] = s; } }
+    const w = slEval(g);
+    if (o.s ? (w.length === 1 && w[0].s === o.s && w[0].n === o.n) : !w.length) return { g, wins: w };
+  }
+  return { g: [['lemon', 'plum', 'grapes'], ['orange', 'cherry', 'melon'], ['plum', 'lemon', 'seven'], ['grapes', 'melon', 'orange'], ['cherry', 'orange', 'lemon']], wins: [] };
+}
+
+// ---------- symboly ----------
+const SL_DEFS = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="sg-red" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff8a8a"/><stop offset=".55" stop-color="#e5182c"/><stop offset="1" stop-color="#8d0a19"/></radialGradient>
+  <radialGradient id="sg-yel" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fffbc2"/><stop offset=".6" stop-color="#ffe11a"/><stop offset="1" stop-color="#d9a600"/></radialGradient>
+  <radialGradient id="sg-org" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd08a"/><stop offset=".55" stop-color="#ff8a00"/><stop offset="1" stop-color="#c24e00"/></radialGradient>
+  <radialGradient id="sg-pur" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#e3a6ff"/><stop offset=".55" stop-color="#9b2fd6"/><stop offset="1" stop-color="#4a0b78"/></radialGradient>
+  <radialGradient id="sg-grp" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#b6ff8a"/><stop offset=".55" stop-color="#43c22b"/><stop offset="1" stop-color="#1c6b10"/></radialGradient>
+  <linearGradient id="sg-rind" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5d73"/><stop offset="1" stop-color="#d1122f"/></linearGradient>
+  <linearGradient id="sg-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6b0"/><stop offset=".5" stop-color="#ffd000"/><stop offset="1" stop-color="#ff9500"/></linearGradient>
+  <linearGradient id="sg-7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6a6a"/><stop offset=".5" stop-color="#ff0a2a"/><stop offset="1" stop-color="#9e0016"/></linearGradient>
+</defs></svg>`;
+const SL_ART = {
+  cherry: `<path d="M33 9C35 20 24 28 21 39M33 9C38 19 43 27 44 37" stroke="#2f9e44" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M33 9q11-7 19 2q-11 5-19-2z" fill="#3ddc84"/><circle cx="20" cy="44" r="12.5" fill="url(#sg-red)"/><circle cx="44" cy="42" r="12.5" fill="url(#sg-red)"/><ellipse cx="15.5" cy="39.5" rx="3.6" ry="2.6" fill="#fff" opacity=".75"/><ellipse cx="39.5" cy="37.5" rx="3.6" ry="2.6" fill="#fff" opacity=".75"/>`,
+  lemon: `<g transform="rotate(-22 32 33)"><ellipse cx="32" cy="33" rx="24" ry="17" fill="url(#sg-yel)"/><ellipse cx="7.5" cy="33" rx="4" ry="3" fill="#f2c200"/><ellipse cx="56.5" cy="33" rx="4" ry="3" fill="#f2c200"/><ellipse cx="25" cy="26" rx="8" ry="3.5" fill="#fff" opacity=".6"/></g>`,
+  orange: `<circle cx="32" cy="35" r="22" fill="url(#sg-org)"/><path d="M32 14q4-9 14-8q-3 9-14 8z" fill="#3ddc84"/><circle cx="32" cy="14" r="2.5" fill="#2f6e1f"/><g fill="#c24e00" opacity=".35"><circle cx="40" cy="44" r="1.4"/><circle cx="24" cy="45" r="1.4"/><circle cx="44" cy="32" r="1.4"/><circle cx="30" cy="50" r="1.4"/></g><ellipse cx="24" cy="27" rx="6" ry="4" fill="#fff" opacity=".55"/>`,
+  plum: `<ellipse cx="32" cy="36" rx="19" ry="23" fill="url(#sg-pur)"/><path d="M32 14q-4 22 2 44" stroke="#4a0b78" stroke-width="2.4" fill="none" opacity=".55"/><path d="M32 14q2-6 7-8" stroke="#6b4426" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="24" cy="28" rx="4" ry="7" fill="#fff" opacity=".5"/>`,
+  grapes: `<path d="M32 8v8" stroke="#6b4426" stroke-width="3" stroke-linecap="round"/><path d="M33 12q10-8 19-2q-9 7-19 2z" fill="#3ddc84"/>${[[22, 22], [32, 21], [42, 22], [27, 31], [37, 31], [17, 31], [47, 31], [22, 40], [32, 40], [42, 40], [27, 49], [37, 49], [32, 57]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6.6" fill="url(#sg-grp)" stroke="#145209" stroke-width=".8"/><circle cx="${x - 2}" cy="${y - 2.2}" r="1.8" fill="#fff" opacity=".7"/>`).join('')}`,
+  melon: `<path d="M5 24a27 27 0 0 0 54 0z" fill="#2f9e44"/><path d="M9 24a23 23 0 0 0 46 0z" fill="#e9ffd9"/><path d="M12 24a20 20 0 0 0 40 0z" fill="url(#sg-rind)"/><g fill="#1a0a0a">${[[22, 31], [32, 37], [42, 31], [27, 42], [37, 42], [32, 29]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="1.6" ry="2.6"/>`).join('')}</g><path d="M5 24h54" stroke="#1f7a32" stroke-width="2"/>`,
+  seven: `<text x="32" y="55" text-anchor="middle" font-size="62" font-weight="900" fill="url(#sg-7)" stroke="#ffd400" stroke-width="4" paint-order="stroke" style="font-family:var(--ff);font-stretch:100%">7</text>`,
+  star: `<polygon points="32,4 39.6,22.8 59.6,23.6 44,36.2 49.4,55.8 32,44.6 14.6,55.8 20,36.2 4.4,23.6 24.4,22.8" fill="url(#sg-gold)" stroke="#fff6b0" stroke-width="2" stroke-linejoin="round"/><polygon points="32,15 35.5,24.5 45,25 37.6,31 40,40.5 32,35 24,40.5 26.4,31 19,25 28.5,24.5" fill="#fff" opacity=".35"/>`,
+};
+const slSym = (s, cls = '') => `<div class="sl-c ${cls}" data-s="${s}"><svg viewBox="0 0 64 64">${SL_ART[s]}</svg></div>`;
+
+// ---------- zvuky (syntetizované v prohlížeči) ----------
+const AU = { ctx:null };
+S.sndOff = ls.get('snd_off') === true;
+function auc(){
+  if (S.sndOff) return null;
+  try { if (!AU.ctx) AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (AU.ctx.state === 'suspended') AU.ctx.resume(); return AU.ctx; } catch(e){ return null; }
+}
+function tn(f, d, o = {}){
+  const c = auc(); if (!c) return;
+  const t = c.currentTime + (o.at || 0), os = c.createOscillator(), g = c.createGain(), v = o.vol ?? .06;
+  os.type = o.type || 'square'; os.frequency.setValueAtTime(f, t); if (o.to) os.frequency.exponentialRampToValueAtTime(o.to, t + d);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  os.connect(g).connect(c.destination); os.start(t); os.stop(t + d + .03);
+}
+function nz(d, o = {}){
+  const c = auc(); if (!c) return;
+  const t = c.currentTime + (o.at || 0), b = c.createBuffer(1, Math.ceil(c.sampleRate * d), c.sampleRate), x = b.getChannelData(0);
+  for (let i = 0; i < x.length; i++) x[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / x.length, o.pow || 2);
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = b; f.type = o.ft || 'lowpass'; f.frequency.value = o.f || 1200; g.gain.value = o.vol ?? .2;
+  s.connect(f).connect(g).connect(c.destination); s.start(t);
+}
+const SFX0 = {
+  start(){ nz(.3, { ft:'bandpass', f:900, vol:.3, pow:1 }); tn(196, .22, { to:784, type:'sawtooth', vol:.045 }); },
+  tick(){ tn(1500 + Math.random() * 500, .022, { type:'square', vol:.018 }); },
+  stop(i){ nz(.1, { f:500, vol:.45 }); tn(150 - i * 8, .13, { type:'triangle', vol:.2, to:70 }); tn(2400, .025, { vol:.025 }); },
+  tease(){ tn(330, 1.1, { to:1320, type:'sawtooth', vol:.04 }); tn(332, 1.1, { to:1330, type:'square', vol:.02 }); },
+  win(m){ const b = m >= 5 ? 523.25 : 659.25; [0, 4, 7, 12].forEach((s, i) => tn(b * Math.pow(2, s / 12), .16, { at: i * .075, type:'square', vol:.05 })); },
+  coin(){ tn(1975, .05, { type:'square', vol:.03 }); tn(2960, .06, { at:.03, type:'square', vol:.025 }); },
+  big(){ [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tn(392 * Math.pow(2, s / 12), .22, { at: i * .085, type:'sawtooth', vol:.045 }));
+    [0, 4, 7, 12].forEach(s => tn(196 * Math.pow(2, s / 12), 1.6, { at:.62, type:'triangle', vol:.07 })); nz(1.2, { at:.6, ft:'highpass', f:6000, vol:.08, pow:1.5 }); },
+  lose(){ tn(196, .14, { type:'triangle', vol:.07, to:130 }); }
+};
+// záznam zvuků jen pro natáčení ukázek (window.__sfx), jinak nic nedělá
+const SFX = new Proxy(SFX0, { get: (o, k) => (...a) => { if (window.__sfx) window.__sfx.push([Date.now(), k, ...a]); return o[k](...a); } });
+
+// ---------- automat (trvalý prvek, přežije překreslení stránky) ----------
+Object.assign(S, { slotEl:null, slotBusy:false, slotBet:10, slotAuto:0, slotGrid:null, slotWinAmt:0 });
+const SL_STEPS = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+function slotBuild(){
+  const el = document.createElement('div'); el.className = 'slot-wrap';
+  const bulbs = n => Array.from({ length: n }, (_, i) => `<i style="--i:${i}"></i>`).join('');
+  el.innerHTML = `${SL_DEFS}<div class="slot" id="slotM">
+    <div class="sl-bulbs top">${bulbs(16)}</div>
+    <div class="sl-head"><div class="sl-title"><span>RISKO</span><b>HOT</b></div><div class="sl-sub">5 výherních linií</div></div>
+    <div class="sl-win">
+      <div class="sl-lns">${[2, 4, 1, 5, 3].map(n => `<i style="--c:${SL_LCOL[n - 1]}">${n}</i>`).join('')}</div>
+      <div class="sl-reels" id="slReels">${[0, 1, 2, 3, 4].map(i => `<div class="sl-reel" data-r="${i}"><div class="sl-strip"></div></div>`).join('')}<svg class="sl-lines" id="slLines" viewBox="0 0 500 300" preserveAspectRatio="none"></svg></div>
+      <div class="sl-lns">${[2, 5, 1, 4, 3].map(n => `<i style="--c:${SL_LCOL[n - 1]}">${n}</i>`).join('')}</div>
+    </div>
+    <div class="sl-leds"><div><small>Kredit</small><b id="slCred">0</b></div><div><small>Sázka</small><b id="slBet">0</b></div><div class="w"><small>Výhra</small><b id="slWinA">0</b></div></div>
+    <div class="sl-ctl">
+      <button class="sl-b snd" data-act="slotsnd" aria-label="Zvuk"></button>
+      <button class="sl-b" data-act="slotbet" data-d="-1" aria-label="Snížit sázku">−</button>
+      <button class="sl-spin" id="slSpin" data-act="slotspin" aria-label="Roztočit"><span>START</span></button>
+      <button class="sl-b" data-act="slotbet" data-d="1" aria-label="Zvýšit sázku">+</button>
+      <button class="sl-b auto" id="slAuto" data-act="slotauto" aria-label="Automatické točení">AUTO</button>
+    </div>
+    <div class="sl-bulbs bot">${bulbs(16)}</div>
+    <div class="sl-big" id="slBig"></div>
+  </div>
+  <h2 style="margin-top:20px">Výherní tabulka</h2>
+  <div class="mut" style="margin:-4px 0 10px">Výhry platí zleva doprava na 5 liniích, od prvního válce. Hvězdy platí kdekoli na válcích. Částky jsou pro tvoji sázku.</div>
+  <div class="sl-pay" id="slPay"></div>
+  <div class="sl-lmap">${SL_LINES.map((L, li) => `<div><svg viewBox="0 0 50 30">${[0, 1, 2].map(r => [0, 1, 2, 3, 4].map(c => `<rect x="${c * 10 + 1}" y="${r * 10 + 1}" width="8" height="8" rx="1.5" fill="${L[c] === r ? SL_LCOL[li] : '#2a2a26'}"/>`).join('')).join('')}</svg><small>Linie ${li + 1}</small></div>`).join('')}</div>`;
+  S.slotEl = el;
+  const g = S.slotGrid || slGrid(SL_OUT[0]).g; S.slotGrid = g;
+  el.querySelectorAll('.sl-reel').forEach((r, i) => { r.querySelector('.sl-strip').innerHTML = g[i].map(s => slSym(s)).join(''); });
+  return el;
+}
+function slotSize(){
+  const el = S.slotEl, rs = el && el.querySelector('#slReels'); if (!rs || !rs.clientWidth) return;
+  el.style.setProperty('--cs', ((rs.clientWidth - 4 * 6) / 5).toFixed(1) + 'px');
+}
+window.addEventListener('resize', slotSize);
+function slotSync(){
+  const el = S.slotEl; if (!el) return;
+  const C = casCfg(), mx = C.slot.max;
+  if (S.slotBet > mx) S.slotBet = SL_STEPS.filter(x => x <= mx).pop() || mx;
+  if (!S.slotCounting) el.querySelector('#slCred').textContent = fmtN(S.profile?.points ?? 0);
+  el.querySelector('#slBet').textContent = fmtN(S.slotBet);
+  el.querySelector('#slWinA').textContent = fmtN(S.slotWinAmt);
+  el.querySelector('.sl-b.snd').innerHTML = S.sndOff ? ic('volume-x') : ic('volume-2');
+  const au = el.querySelector('#slAuto'); au.textContent = S.slotAuto > 0 ? `STOP ${S.slotAuto}` : 'AUTO'; au.classList.toggle('on', S.slotAuto > 0);
+  el.querySelector('#slSpin').disabled = S.slotBusy || !C.on;
+  el.querySelectorAll('[data-act=slotbet]').forEach(b => { b.disabled = S.slotBusy || S.slotAuto > 0; });
+  el.querySelector('#slPay').innerHTML = SL_SYM.map(s => { const p = SL_PAY[s];
+    return `<div class="sp-r">${slSym(s)}<div class="sp-v">${Object.keys(p).sort((a, b) => b - a).map(n => `<span><b>${n}×</b>${fmtN(Math.trunc(S.slotBet * p[n]))} b</span>`).join('')}</div></div>`; }).join('');
+}
+function viewSlot(){
+  queueMicrotask(() => {
+    const m = document.getElementById('slotmount'); if (!m) return;
+    const el = S.slotEl || slotBuild(); m.replaceWith(el); slotSize(); slotSync();
+  });
+  return `<div id="slotmount"></div>`;
+}
+// válec: točení a zastavení
+function reelSpin(i){
+  const r = S.slotEl.querySelectorAll('.sl-reel')[i], st = r.querySelector('.sl-strip');
+  const syms = Array.from({ length: 8 }, () => slRand());
+  st.className = 'sl-strip spin'; st.style.animationDuration = (.14 + i * .012) + 's';
+  st.innerHTML = [...syms, ...syms].map(s => slSym(s)).join(''); r.classList.remove('tease');
+}
+function reelStop(i, col){
+  const r = S.slotEl.querySelectorAll('.sl-reel')[i], st = r.querySelector('.sl-strip');
+  st.className = 'sl-strip'; st.innerHTML = col.map(s => slSym(s)).join('');
+  void st.offsetWidth; st.classList.add('land'); r.classList.remove('tease');
+}
+const slWait = ms => new Promise(r => setTimeout(r, ms));
+function slClearWin(){
+  const el = S.slotEl; if (!el) return;
+  el.querySelector('#slLines').innerHTML = ''; el.querySelectorAll('.sl-c.hit').forEach(c => c.classList.remove('hit'));
+  el.querySelector('#slotM').classList.remove('party', 'flash'); el.querySelector('#slBig').className = 'sl-big';
+}
+function slShowWins(g, wins){
+  const el = S.slotEl, cells = [...el.querySelectorAll('.sl-reel')].map(r => [...r.querySelectorAll('.sl-c')]);
+  const lines = el.querySelector('#slLines');
+  lines.innerHTML = wins.filter(w => w.li !== undefined).map(w => { const L = SL_LINES[w.li];
+    return `<polyline points="${L.map((row, c) => `${50 + c * 100},${50 + row * 100}`).join(' ')}" stroke="${SL_LCOL[w.li]}" />`; }).join('');
+  wins.forEach(w => {
+    if (w.cells) w.cells.forEach(([i, j]) => cells[i][j]?.classList.add('hit'));
+    else for (let c = 0; c < w.n; c++) cells[c][SL_LINES[w.li][c]]?.classList.add('hit');
+  });
+}
+async function slCount(to, dur){
+  S.slotCounting = true; const el = S.slotEl, b = el.querySelector('#slWinA'), t0 = performance.now(); let last = 0;
+  await new Promise(res => { const f = () => { const t = performance.now(); const k = Math.min(1, (t - t0) / dur), v = Math.round(to * k);
+      b.textContent = fmtN(v); if (t - last > 70 && k < 1) { last = t; SFX.coin(); }
+      if (k < 1) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+  S.slotCounting = false; slotSync();
+}
+async function slotSpin(){
+  if (S.slotBusy) return;
+  const C = casCfg(), a = S.slotBet;
+  const stopAuto = () => { S.slotAuto = 0; slotSync(); };
+  if (!C.on) { toast('Kasino je teď zavřené.', true); stopAuto(); return; }
+  if (!S.cfg.casino?.slot) { toast('Bookmaker musí v adminu uložit nastavení automatu.', true); stopAuto(); return; }
+  if (S.cfg.suspendAll) { toast('Sázení je teď pozastavené.', true); stopAuto(); return; }
+  if (isBlocked(me())) { toast('Sázení máš momentálně pozastavené.', true); stopAuto(); return; }
+  if (a > C.slot.max) { toast(`Max. sázka na automatu je ${fmtN(C.slot.max)} b.`, true); stopAuto(); return; }
+  if (a > (S.profile?.points ?? 0)) { toast(`Na tuhle sázku nemáš dost bodů (máš ${fmtN(S.profile.points)} b).`, true); stopAuto(); return; }
+  const el = S.slotEl;
+  S.slotBusy = true; S.slotWinAmt = 0; slClearWin(); slotSync(); buzz(12);
+  SFX.start(); for (let i = 0; i < 5; i++) reelSpin(i);
+  const tick = setInterval(() => SFX.tick(), 75), t0 = performance.now();
+  const ref = doc(collection(db,'cas'));
+  let ok = false;
+  try {
+    const bt = writeBatch(db);
+    bt.set(ref, { uid: S.user.uid, name: S.profile.name || '', g:'slot', a, m: C.slot.m, cum: C.slot.cum, t: serverTimestamp(), st:'spin' });
+    bt.update(doc(db,'users',S.user.uid), { points: increment(-a) });
+    await bt.commit();
+    const snap = await getDocFromServer(ref), s = { id: ref.id, ...snap.data() };
+    const r = pickR(rndOf(s.t), s.cum), pay = casPay(s, r), o = SL_OUT[r], { g, wins } = slGrid(o);
+    const left = 700 - (performance.now() - t0); if (left > 0) await slWait(left);
+    const tease = g[0].filter(x => x === 'star').length + g[1].filter(x => x === 'star').length >= 2 || SL_LINES.some(L => g[0][L[0]] === 'seven' && g[1][L[1]] === 'seven');
+    for (let i = 0; i < 5; i++) {
+      if (i) await slWait(tease && i >= 2 ? 850 : 240);
+      if (tease && i >= 2) { el.querySelectorAll('.sl-reel').forEach((rr, k) => rr.classList.toggle('tease', k >= i)); SFX.tease(); }
+      reelStop(i, g[i]); SFX.stop(i);
+    }
+    clearInterval(tick); S.slotGrid = g;
+    await casSettle(s, r, pay); ok = true;
+    Object.assign(s, { st:'done', r, pay }); S.casHist = [s, ...(S.casHist || [])];
+    if (pay > 0) {
+      slShowWins(g, wins); const M = el.querySelector('#slotM'); M.classList.add('party');
+      if (o.m >= 10) { const big = el.querySelector('#slBig'); big.innerHTML = `<b>${o.m >= 50 ? 'MEGA VÝHRA' : o.m >= 25 ? 'SUPER VÝHRA' : 'VELKÁ VÝHRA'}</b><span id="slBigN">0</span><small>bodů</small>`; big.className = 'sl-big on';
+        M.classList.add('flash'); SFX.big(); confetti(o.m >= 50 ? 1.6 : 1); buzz([60, 40, 60, 40, 120]);
+        const n = big.querySelector('#slBigN'), d = Math.min(4000, 1200 + o.m * 40), tt = performance.now();
+        await new Promise(res => { let last = 0; const f = () => { const t = performance.now(); const k = Math.min(1, (t - tt) / d); n.textContent = fmtN(Math.round(pay * (1 - Math.pow(1 - k, 2)))); if (t - last > 60 && k < 1) { last = t; SFX.coin(); } if (k < 1) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+        S.slotWinAmt = pay; slotSync(); await slWait(1300); big.className = 'sl-big'; M.classList.remove('flash');
+      } else { SFX.win(o.m); buzz(30); S.slotWinAmt = 0; await slCount(pay, Math.min(2200, 350 + o.m * 220)); S.slotWinAmt = pay; }
+    } else SFX.lose();
+  } catch(e){
+    clearInterval(tick);
+    const g = S.slotGrid || slGrid(SL_OUT[0]).g; for (let i = 0; i < 5; i++) reelStop(i, g[i]);
+    toast(e.code === 'permission-denied' ? 'Hru se nepodařilo zapsat. Zkus to znovu (bookmaker mohl změnit nastavení).' : errTxt(e), true);
+    S.casResumed = false; S.slotAuto = 0;
+  }
+  S.slotBusy = false; slotSync();
+  if (ok && S.slotAuto > 0) { S.slotAuto--; slotSync();
+    if (S.slotAuto > 0) { await slWait(S.slotWinAmt > 0 ? 1100 : 450); if (S.slotAuto > 0 && !S.slotBusy) slotSpin(); } }
+}
+function slotBetStep(d){
+  if (S.slotBusy || S.slotAuto > 0) return;
+  const mx = casCfg().slot.max, st = SL_STEPS.filter(x => x <= mx); if (!st.includes(mx)) st.push(mx);
+  let i = st.findIndex(x => x >= S.slotBet); if (i < 0) i = st.length - 1;
+  if (st[i] !== S.slotBet && d < 0) i++;
+  S.slotBet = st[Math.max(0, Math.min(st.length - 1, i + d))]; SFX.tick(); slotSync();
+}
+function slotAutoT(){
+  if (S.slotAuto > 0) { S.slotAuto = 0; slotSync(); return; }
+  S.slotAuto = 10; slotSync(); if (!S.slotBusy) slotSpin();
+}
+
+// ---------- karty ----------
+// kód karty c = hodnost*4 + barva; hodnost 0=A, 1..8 = 2..9, 9..12 = 10,J,Q,K; barva 0=srdce,1=káry (červené), 2=piky,3=kříže
+const BJ_RN = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const bjV = c => c < 4 ? 1 : (c < 36 ? Math.trunc(c / 4) + 1 : 10);
+function bjT(L){ let s = 0; for (const c of L) s += bjV(c); return (L.some(c => c < 4) && s + 10 <= 21) ? s + 10 : s; }
+const bjSoft = L => { let s = 0; for (const c of L) s += bjV(c); return L.some(c => c < 4) && s + 10 <= 21; };
+// hodnost z (μs × M) mod 1 000 000, barva nezávisle z (μs × N) mod 999 983 (prvočíslo) – stejný výpočet dělají pravidla Firebase
+const BJ_MUL = [7919, 104729, 1299709], BJ_SM = [15485863, 32452843, 49979687];
+function bjCard(t, k, cum){
+  const u = Math.floor((t?.nanoseconds || 0) / 1000), R = (u * BJ_MUL[k]) % 1000000;
+  let r = 0; for (let i = 1; i <= 12; i++) if (R >= cum[i]) r++;
+  return r * 4 + ((u * BJ_SM[k]) % 999983) % 4;
+}
+// ---------- matematika: přesná výhoda kasina (nekonečný balíček s vahami) ----------
+// pravidla: krupiér bere 2. kartu až po hráči (bez skryté karty), stojí na měkkých 17, max 7 karet, double na 2 kartách vč. po splitu, 1 split, split esa 1 karta
+function bjEdge(p, wf = 1, pol = false){
+  const pv = {}; p.forEach((q, r) => { const v = r === 0 ? 11 : (r < 9 ? r + 1 : 10); pv[v] = (pv[v] || 0) + q; });
+  const vals = Object.keys(pv).map(Number).filter(v => pv[v] > 0);
+  const add = (t, s, v) => [t + (v === 11 ? 1 : v), s || v === 11];
+  const best = (t, s) => s && t + 10 <= 21 ? t + 10 : t;
+  const DM = new Map();
+  function dealer(t, s, n){
+    const k = t * 100 + (s ? 50 : 0) + n; if (DM.has(k)) return DM.get(k);
+    const b = best(t, s); let out;
+    if (b >= 17 || n >= 7) out = { [b > 21 ? 22 : b]: 1 };
+    else { out = {}; for (const v of vals) { const [t2, s2] = add(t, s, v), d = dealer(t2, s2, n + 1); for (const x in d) out[x] = (out[x] || 0) + d[x] * pv[v]; } }
+    DM.set(k, out); return out;
+  }
+  const DD = {};
+  for (const up of vals) { const [t, s] = add(0, false, up), out = {};
+    for (const v of vals) { const [t2, s2] = add(t, s, v);
+      if (best(t2, s2) === 21) { out.bj = (out.bj || 0) + pv[v]; continue; }
+      const d = dealer(t2, s2, 2); for (const x in d) out[x] = (out[x] || 0) + d[x] * pv[v]; }
+    DD[up] = out; }
+  const SM = new Map();
+  function stand(b, up){ const k = b * 100 + up; if (SM.has(k)) return SM.get(k);
+    let e = 0; for (const x in DD[up]) { const q = DD[up][x]; if (x === 'bj') e -= q; else { const d = +x; if (d === 22 || b > d) e += q * wf; else if (b < d) e -= q; } }
+    SM.set(k, e); return e; }
+  const PM = new Map();
+  function play(t, s, n, up){ const b = best(t, s); if (b > 21) return -1;
+    const k = ((t * 2 + (s ? 1 : 0)) * 8 + n) * 12 + up; if (PM.has(k)) return PM.get(k);
+    const st = stand(b, up); let r = st;
+    if (n < 7 && b < 21) { let h = 0; for (const v of vals) { const [t2, s2] = add(t, s, v); h += pv[v] * play(t2, s2, n + 1, up); } r = Math.max(st, h); }
+    PM.set(k, r); return r; }
+  const dbl = (t, s, up) => { let e = 0; for (const v of vals) { const [t2, s2] = add(t, s, v), b = best(t2, s2); e += pv[v] * (b > 21 ? -1 : stand(b, up)); } return 2 * e; };
+  const hand2 = (c1, c2, up, sa) => { let [t, s] = add(0, false, c1); [t, s] = add(t, s, c2); if (sa) { const b = best(t, s); return b > 21 ? -1 : stand(b, up); } return Math.max(play(t, s, 2, up), dbl(t, s, up)); };
+  let tot = 0;
+  for (const up of vals) for (const c1 of vals) for (const c2 of vals) {
+    const pr = pv[up] * pv[c1] * pv[c2]; let [t, s] = add(0, false, c1); [t, s] = add(t, s, c2); let e;
+    if (best(t, s) === 21) e = (1 - (DD[up].bj || 0)) * 1.5 * wf;
+    else { e = hand2(c1, c2, up, false); if (c1 === c2) { let sp = 0; for (const v of vals) sp += pv[v] * hand2(c1, v, up, c1 === 11); e = Math.max(e, 2 * sp); } }
+    tot += pr * e; }
+  if (pol) return { edge: -tot, play, stand, dbl, hand2, add, best, DD, pv, vals };
+  return -tot;
+}
+const bjProbs = x => { const w = Array.from({ length: 13 }, (_, r) => (r === 0 || r >= 9) ? 1 - x : 1), S = w.reduce((a, b) => a + b, 0); return w.map(v => v / S); };
+const bjPOf = cum => Array.from({ length: 13 }, (_, r) => (cum[r + 1] - cum[r]) / 1e6);
+const BJ_XMAX = .6;
+// najde balíček (x) a případně výplatu za výhru (wf), aby výhoda kasina byla aspoň „target“
+function bjSolve(target){
+  const E = (x, wf) => bjEdge(bjPOf(cumOf(bjProbs(x))), wf);
+  let x = 0, wf = 1;
+  if (E(0, 1) < target) {
+    if (E(BJ_XMAX, 1) >= target) { let lo = 0, hi = BJ_XMAX; for (let i = 0; i < 22; i++) { const m = (lo + hi) / 2; if (E(m, 1) >= target) hi = m; else lo = m; } x = hi; }
+    else { x = BJ_XMAX; let lo = .3, hi = 1; for (let i = 0; i < 22; i++) { const m = (lo + hi) / 2; if (E(x, m) >= target) lo = m; else hi = m; } wf = Math.floor(lo * 1000) / 1000; }
+  }
+  x = Math.ceil(x * 10000) / 10000;
+  const cum = cumOf(bjProbs(x));
+  return { x, wf, cum, edge: bjEdge(bjPOf(cum), wf) };
+}
+// návratnost side betů (1 = hráč dostane zpět vše)
+function bjSideRtp(cum){
+  const p = bjPOf(cum), q = p.reduce((a, b) => a + b * b, 0);
+  const pp = q * (13.5 / 4 + 7 / 4 + 4 / 2);
+  let t3 = 0;
+  for (let a = 0; a < 13; a++) for (let b = 0; b < 13; b++) for (let c = 0; c < 13; c++) {
+    const pr = p[a] * p[b] * p[c]; if (!pr) continue;
+    const trips = a === b && b === c, R = [a, b, c], mx = Math.max(a, b, c), mn = Math.min(a, b, c), dist = a !== b && b !== c && a !== c;
+    const str = dist && (mx - mn === 2 || (R.includes(0) && R.includes(11) && R.includes(12)));
+    const pf = 1 / 16; // všechny tři stejná barva
+    if (trips) t3 += pr * (pf * 51 + (1 - pf) * 16);
+    else if (str) t3 += pr * (pf * 21 + (1 - pf) * 6);
+    else t3 += pr * pf * 3.5;
+  }
+  const ins = 3 * (p[9] + p[10] + p[11] + p[12]);
+  return { pp, t3, ins };
+}
+// ---------- výplata (stejný výpočet dělají pravidla Firebase) ----------
+const bjPBJ = o => !o.sp && o.h0.length === 2 && bjT(o.h0) === 21;
+function bjHandRet(h, db, a, wf, dt, dbj, pbj){
+  const pt = bjT(h), s = db ? a * 2 : a;
+  return pt > 21 ? 0 : (pbj ? (dbj ? a : a * (1 + 1.5 * wf)) : (dbj ? 0 : ((dt > 21 || pt > dt) ? s * (1 + wf) : (pt === dt ? s : 0))));
+}
+function bjPPRet(p, b){
+  if (!b) return 0;
+  if (Math.trunc(p[0] / 4) !== Math.trunc(p[1] / 4)) return 0;
+  return p[0] % 4 === p[1] % 4 ? b * 13.5 : ((p[0] % 4 < 2) === (p[1] % 4 < 2) ? b * 7 : b * 4);
+}
+function bj3Kind(p, dc){
+  const r = [Math.trunc(p[0] / 4), Math.trunc(p[1] / 4), Math.trunc(dc / 4)], s = [p[0] % 4, p[1] % 4, dc % 4];
+  const fl = s[0] === s[1] && s[1] === s[2], tr = r[0] === r[1] && r[1] === r[2];
+  const dist = r[0] !== r[1] && r[1] !== r[2] && r[0] !== r[2], mx = Math.max(...r), mn = Math.min(...r);
+  const st = dist && (mx - mn === 2 || (r.includes(0) && r.includes(11) && r.includes(12)));
+  return tr && fl ? 'st' : st && fl ? 'sf' : tr ? 'tr' : st ? 's' : fl ? 'f' : null;
+}
+const BJ_T3 = { st: 51, sf: 21, tr: 16, s: 6, f: 3.5 };
+const BJ_T3N = { st: 'Stejná trojice', sf: 'Postupka v barvě', tr: 'Trojice', s: 'Postupka', f: 'Barva' };
+const bj3Ret = (p, dc, b) => { if (!b) return 0; const k = bj3Kind(p, dc); return k ? b * BJ_T3[k] : 0; };
+function bjPay(o){
+  const dt = bjT(o.d), dbj = o.d.length === 2 && dt === 21, pbj = bjPBJ(o);
+  const r0 = bjHandRet(o.h0, o.db0, o.a, o.wf, dt, dbj, pbj);
+  const r1 = o.sp ? bjHandRet(o.h1, o.db1, o.a, o.wf, dt, dbj, false) : 0;
+  const ir = (o.ins > 0 && dbj) ? o.ins * 3 : 0;
+  return Math.trunc(r0 + r1 + ir + bjPPRet(o.p2, o.pp) + bj3Ret(o.p2, o.d[0], o.t3));
+}
+// ---------- stav hry (zrcadlí pravidla) ----------
+const bjAllDone = o => o.dn0 && (!o.sp || o.dn1);
+const bjAlive = o => bjT(o.h0) <= 21 || (o.sp && bjT(o.h1) <= 21);
+const bjInsOk = o => !(o.d.length === 1 && o.d[0] < 4) || o.insd;
+const bjDealerDraw = o => bjT(o.d) < 17 && o.d.length < 7 && (bjAlive(o) || (o.d.length === 1 && o.ins > 0));
+const bjSplitAces = o => o.sp && o.h0[0] < 4;
+function bjReveal(o){
+  const P = o.pend, cum = o.cum, n = { pend: null, op: 'reveal' };
+  if (P.to === 'deal') {
+    const c0 = bjCard(P.t, 0, cum), c1 = bjCard(P.t, 1, cum), c2 = bjCard(P.t, 2, cum);
+    Object.assign(n, { h0: [c0, c2], d: [c1], p2: [c0, c2], dn0: bjT([c0, c2]) === 21 });
+    n.st = n.dn0 ? 'dealer' : 'play';
+  } else if (P.to === 'h0' || P.to === 'h1') {
+    const X = P.to === 'h0' ? 0 : 1, h = [...o['h' + X], bjCard(P.t, 0, cum)];
+    n['h' + X] = h; n['dn' + X] = bjT(h) >= 21 || o['db' + X] || h.length >= 7;
+    const m = { ...o, ...n }; n.cur = m.sp && m.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play';
+  } else if (P.to === 'split') {
+    const h0 = [...o.h0, bjCard(P.t, 0, cum)], h1 = [...o.h1, bjCard(P.t, 1, cum)], ac = o.h0[0] < 4;
+    Object.assign(n, { h0, h1, dn0: ac || bjT(h0) >= 21, dn1: ac || bjT(h1) >= 21 });
+    const m = { ...o, ...n }; n.cur = n.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play';
+  } else if (P.to === 'd') n.d = [...o.d, bjCard(P.t, 0, cum)];
+  return n;
+}
+// ---------- zvuky ----------
+const BJS = {
+  card(){ nz(.09, { ft:'bandpass', f:2600, vol:.35, pow:1.2 }); tn(900, .03, { type:'triangle', vol:.03 }); },
+  chip(){ tn(2600, .03, { type:'square', vol:.03 }); tn(3400, .04, { at:.02, type:'square', vol:.025 }); nz(.04, { ft:'highpass', f:3000, vol:.12 }); },
+  win(){ [0, 4, 7, 12].forEach((s, i) => tn(523.25 * Math.pow(2, s / 12), .15, { at: i * .07, type:'square', vol:.05 })); },
+  bj(){ [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tn(440 * Math.pow(2, s / 12), .2, { at: i * .07, type:'sawtooth', vol:.045 })); [0, 7, 12].forEach(s => tn(220 * Math.pow(2, s / 12), 1.2, { at:.5, type:'triangle', vol:.07 })); },
+  push(){ tn(440, .12, { type:'triangle', vol:.06 }); tn(440, .12, { at:.14, type:'triangle', vol:.05 }); },
+  lose(){ tn(220, .2, { type:'triangle', vol:.08, to:110 }); },
+  bust(){ nz(.25, { f:300, vol:.4 }); tn(160, .3, { type:'sawtooth', vol:.05, to:60 }); },
+};
+const bjSnd = new Proxy(BJS, { get: (o, k) => (...a) => { if (window.__sfx) window.__sfx.push([Date.now(), 'bj_' + k, ...a]); if (!S.sndOff) o[k](...a); } });
+
+// ---------- hra ----------
+Object.assign(S, { bj:null, bjBet:{ a:0, pp:0, t3:0 }, bjLast:{ a:10, pp:0, t3:0 }, bjChip:10, bjBusy:false, bjShown:{}, bjRes:null, bjLoaded:false, bjHist:[] });
+const BJ_DEF = { max:150, edge:.02 };
+function bjCfg(){
+  const c = S.cfg.casino?.bj;
+  if (c?.cum) return c;
+  const s = bjSolve(BJ_DEF.edge); return { max: BJ_DEF.max, edge: BJ_DEF.edge, x: s.x, wf: s.wf, cum: s.cum };
+}
+const bjWait = ms => new Promise(r => setTimeout(r, ms));
+async function bjLoad(){
+  S.bjLoaded = true;
+  try {
+    const q = await getDocs(query(collection(db,'bj'), where('uid','==',S.user.uid)));
+    const L = q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.t0) - ms(a.t0));
+    S.bjHist = L.filter(o => o.st === 'done').slice(0, 8);
+    const act = L.find(o => o.st !== 'done');
+    if (act) { S.bj = act; S.bjShown = {}; render(); await bjContinue(); }
+    else render();
+  } catch(e){ render(); }
+}
+// zapíše krok hry; „add“ = kolik bodů se navíc vsadí
+async function bjWrite(upd, add = 0){
+  const bt = writeBatch(db), ref = doc(db,'bj',S.bj.id);
+  bt.update(ref, upd);
+  if (add) bt.update(doc(db,'users',S.user.uid), { points: increment(-add) });
+  await bt.commit();
+}
+async function bjDraw(upd, add = 0){
+  await bjWrite({ ...upd, pend: { t: serverTimestamp(), n: upd.pend.n, to: upd.pend.to } }, add);
+  const snap = await getDocFromServer(doc(db,'bj',S.bj.id));
+  S.bj = { id: S.bj.id, ...snap.data() };
+  const n = bjReveal(S.bj);
+  await bjWrite(n); Object.assign(S.bj, n);
+}
+async function bjContinue(){
+  // dokončí rozehraný krok (výpadek, zavřená appka) a odehraje krupiéra
+  let o = S.bj; if (!o) return;
+  S.bjBusy = true; render();
+  try {
+    if (o.pend) { const snap = await getDocFromServer(doc(db,'bj',o.id)); S.bj = o = { id: o.id, ...snap.data() };
+      if (o.pend) { const n = bjReveal(o); await bjWrite(n); Object.assign(o, n); bjSnd.card(); render(); await bjWait(380); } }
+    if (o.st === 'dealer' && bjInsOk(o)) await bjDealer();
+  } catch(e){ toast(errTxt(e), true); }
+  S.bjBusy = false; render();
+}
+async function bjDeal(){
+  if (S.bjBusy) return;
+  const C = casCfg(), B = bjCfg(), b = S.bjBet, tot = b.a + b.pp + b.t3;
+  if (!C.on) { toast('Kasino je teď zavřené.', true); return; }
+  if (!S.cfg.casino?.bj?.cum) { toast('Bookmaker musí v adminu uložit nastavení blackjacku.', true); return; }
+  if (S.cfg.suspendAll) { toast('Sázení je teď pozastavené.', true); return; }
+  if (isBlocked(me())) { toast('Sázení máš momentálně pozastavené.', true); return; }
+  if (b.a < 1) { toast('Polož žeton na hlavní sázku.', true); return; }
+  if (tot > B.max) { toast(`Max. ${fmtN(B.max)} b na celou hru včetně zdvojení a rozdělení.`, true); return; }
+  if (tot > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
+  S.bjBusy = true; S.bjRes = null; S.bjShown = {}; render();
+  const ref = doc(collection(db,'bj'));
+  try {
+    const o = { uid: S.user.uid, name: S.profile.name || '', g:'bj', a: b.a, pp: b.pp, t3: b.t3, ins: 0, insd: false, tot, cum: B.cum, wf: B.wf,
+      h0: [], h1: [], sp: false, d: [], p2: [], db0: false, db1: false, dn0: false, dn1: false, cur: 0, st:'play', pend: { t: serverTimestamp(), n: 3, to:'deal' }, op:'bet', pay: 0, t0: serverTimestamp() };
+    const bt = writeBatch(db); bt.set(ref, o); bt.update(doc(db,'users',S.user.uid), { points: increment(-tot) }); await bt.commit();
+    bjSnd.chip();
+    S.bjLast = { ...b };
+    const snap = await getDocFromServer(ref); S.bj = { id: ref.id, ...snap.data() };
+    const n = bjReveal(S.bj); await bjWrite(n); Object.assign(S.bj, n);
+    for (let i = 0; i < 3; i++) setTimeout(() => bjSnd.card(), i * 160);
+    render(); await bjWait(650);
+    if (S.bj.st === 'dealer' && bjInsOk(S.bj)) await bjDealer();
+  } catch(e){ toast(errTxt(e), true); }
+  S.bjBusy = false; render();
+}
+async function bjAct(kind){
+  const o = S.bj; if (!o || S.bjBusy || o.st !== 'play' || o.pend || !bjInsOk(o)) return;
+  const X = o.cur, h = o['h' + X], B = bjCfg();
+  S.bjBusy = true; render();
+  try {
+    if (kind === 'hit') { await bjDraw({ op:'hit', pend: { n:1, to:'h' + X } }); bjSnd.card(); }
+    else if (kind === 'stand') { const n = { op:'stand', ['dn' + X]: true }; const m = { ...o, ...n }; n.cur = m.sp && m.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play'; await bjWrite(n); Object.assign(o, n); }
+    else if (kind === 'double') {
+      if (o.tot + o.a > B.max) throw { msg: `Zdvojení by přesáhlo max. ${fmtN(B.max)} b na hru.` };
+      if (o.a > S.profile.points) throw { msg: 'Na zdvojení nemáš dost bodů.' };
+      bjSnd.chip(); await bjDraw({ op:'double', ['db' + X]: true, tot: o.tot + o.a, pend: { n:1, to:'h' + X } }, o.a); bjSnd.card();
+    } else if (kind === 'split') {
+      if (o.tot + o.a > B.max) throw { msg: `Rozdělení by přesáhlo max. ${fmtN(B.max)} b na hru.` };
+      if (o.a > S.profile.points) throw { msg: 'Na rozdělení nemáš dost bodů.' };
+      bjSnd.chip(); await bjDraw({ op:'split', sp: true, h0: [o.h0[0]], h1: [o.h0[1]], tot: o.tot + o.a, pend: { n:2, to:'split' } }, o.a); bjSnd.card(); setTimeout(() => bjSnd.card(), 150);
+    }
+    const n = S.bj; if (bjT(n['h' + X]) > 21) bjSnd.bust();
+    render(); await bjWait(420);
+    if (S.bj.st === 'dealer') await bjDealer();
+  } catch(e){ toast(e.msg || errTxt(e), true); }
+  S.bjBusy = false; render();
+}
+async function bjIns(take){
+  const o = S.bj; if (!o || S.bjBusy || o.insd) return;
+  const ins = take ? Math.trunc(o.a / 2) : 0, B = bjCfg();
+  if (take && o.tot + ins > B.max) { toast(`Pojištění by přesáhlo max. ${fmtN(B.max)} b na hru.`, true); return; }
+  if (take && ins > S.profile.points) { toast('Na pojištění nemáš dost bodů.', true); return; }
+  S.bjBusy = true; render();
+  try { const n = { op:'ins', ins, insd: true, tot: o.tot + ins }; await bjWrite(n, ins); Object.assign(o, n); if (ins) bjSnd.chip();
+    if (o.st === 'dealer') await bjDealer(); }
+  catch(e){ toast(errTxt(e), true); }
+  S.bjBusy = false; render();
+}
+async function bjDealer(){
+  if (S.bjDealing) return;
+  S.bjDealing = true;
+  try { await bjDealer0(); } finally { S.bjDealing = false; }
+}
+async function bjDealer0(){
+  let o = S.bj; if (!o || o.st !== 'dealer') return;
+  while (bjDealerDraw(o)) { await bjWait(o.d.length === 1 ? 350 : 650); await bjDraw({ op:'dealer', pend: { n:1, to:'d' } }); o = S.bj; bjSnd.card(); render(); }
+  await bjWait(450);
+  if (o !== S.bj || o.st !== 'dealer') return;
+  const pay = bjPay(o), bt = writeBatch(db);
+  bt.update(doc(db,'bj',o.id), { op:'settle', st:'done', pay, done: serverTimestamp() });
+  bt.update(doc(db,'users',S.user.uid), { points: increment(pay), lastBj: o.id });
+  await bt.commit();
+  Object.assign(o, { st:'done', pay });
+  S.bjHist = [o, ...S.bjHist].slice(0, 8);
+  bjResult(o);
+}
+function bjResult(o){
+  const dt = bjT(o.d), dbj = o.d.length === 2 && dt === 21, pbj = bjPBJ(o);
+  const hr = [0, 1].filter(i => i === 0 || o.sp).map(i => { const h = o['h' + i], pt = bjT(h), r = bjHandRet(h, o['db' + i], o.a, o.wf, dt, dbj, i === 0 && pbj), s = o['db' + i] ? o.a * 2 : o.a;
+    return { pt, r, s, k: pt > 21 ? 'bust' : (i === 0 && pbj && !dbj) ? 'bj' : r > s ? 'win' : r === s ? 'push' : 'lose' }; });
+  const side = [];
+  if (o.pp) { const r = bjPPRet(o.p2, o.pp); side.push({ n:'Perfect Pairs', r, t: r ? (r === o.pp * 13.5 ? 'Stejný pár' : r === o.pp * 7 ? 'Barevný pár' : 'Smíšený pár') : 'Nic' }); }
+  if (o.t3) { const k = bj3Kind(o.p2, o.d[0]); side.push({ n:'21+3', r: bj3Ret(o.p2, o.d[0], o.t3), t: k ? BJ_T3N[k] : 'Nic' }); }
+  if (o.ins) side.push({ n:'Pojištění', r: dbj ? o.ins * 3 : 0, t: dbj ? 'Krupiér má blackjack' : 'Krupiér nemá blackjack' });
+  S.bjRes = { pay: o.pay, tot: o.tot, hr, side, dbj };
+  const net = o.pay - o.tot;
+  if (hr.some(h => h.k === 'bj')) { bjSnd.bj(); confetti(1.2); buzz([50, 40, 90]); }
+  else if (net > 0) { bjSnd.win(); if (net >= o.tot * 3) confetti(.8); buzz(30); }
+  else if (net === 0) bjSnd.push(); else bjSnd.lose();
+}
+function bjNew(){ if (S.bjBusy) return; S.bj = null; S.bjRes = null; S.bjShown = {}; S.bjBet = { ...S.bjBet }; render(); }
+function bjAddChip(spot){
+  if (S.bjBusy || (S.bj && S.bj.st !== 'done')) return;
+  if (S.bj && S.bj.st === 'done') { S.bj = null; S.bjRes = null; }
+  const B = bjCfg(), b = S.bjBet, tot = b.a + b.pp + b.t3 + S.bjChip;
+  if (tot > B.max) { toast(`Max. ${fmtN(B.max)} b na celou hru včetně zdvojení a rozdělení.`, true); return; }
+  if (tot > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
+  b[spot] += S.bjChip; bjSnd.chip(); render();
+}
+
+// ---------- vykreslení ----------
+const BJ_SUIT = [
+  '<path d="M12 21s-7.5-4.6-9.6-9.2C.7 8.1 2.9 3.5 7 3.5c2.3 0 3.9 1.3 5 3 1.1-1.7 2.7-3 5-3 4.1 0 6.3 4.6 4.6 8.3C19.5 16.4 12 21 12 21z"/>',
+  '<path d="M12 2.5l7.5 9.5-7.5 9.5L4.5 12z"/>',
+  '<path d="M12 2.5S4 8.6 4 13.4C4 16 6 18 8.4 18c1.4 0 2.6-.6 3.1-1.4-.3 2.2-1.3 3.8-2.8 4.9h6.6c-1.5-1.1-2.5-2.7-2.8-4.9.5.8 1.7 1.4 3.1 1.4C18 18 20 16 20 13.4 20 8.6 12 2.5 12 2.5z"/>',
+  '<path d="M12 2.8a4.3 4.3 0 0 0-3.4 6.9A4.3 4.3 0 1 0 10.8 17c-.3 2-1.3 3.4-2.7 4.5h7.8c-1.4-1.1-2.4-2.5-2.7-4.5a4.3 4.3 0 1 0 2.2-7.3A4.3 4.3 0 0 0 12 2.8z"/>'];
+const bjSuit = s => `<svg viewBox="0 0 24 24">${BJ_SUIT[s]}</svg>`;
+function bjCardHtml(c, cls = '', delay = 0){
+  const r = Math.trunc(c / 4), s = c % 4, red = s < 2;
+  return `<div class="bjc ${red ? 'red' : ''} ${cls}" style="--dl:${delay}ms"><div class="in"><div class="fr"><b>${BJ_RN[r]}</b>${bjSuit(s)}</div>
+    <div class="mid">${r >= 10 ? `<span class="face">${BJ_RN[r]}</span>` : bjSuit(s)}</div><div class="fr bot"><b>${BJ_RN[r]}</b>${bjSuit(s)}</div></div><div class="back"></div></div>`;
+}
+function bjHandHtml(key, L){
+  const sh = S.bjShown[key] || 0; S.bjShown[key] = L.length;
+  return `<div class="bjh">${L.map((c, i) => bjCardHtml(c, i >= sh ? 'deal' : '', i >= sh ? (i - sh) * 170 : 0)).join('')}</div>`;
+}
+const bjTot = L => { const t = bjT(L); return L.length ? `${bjSoft(L) && t < 21 ? `${t - 10}/` : ''}${t}` : ''; };
+function bjChipStack(v){ return v ? `<div class="bjstk"><i></i><b>${fmtN(v)}</b></div>` : ''; }
+function viewBJ(){
+  const B = bjCfg(), o = S.bj, b = S.bjBet, playing = o && o.st !== 'done', R = S.bjRes;
+  if (!S.bjLoaded && S.user) bjLoad();
+  const dealerArea = o ? `<div class="bjd">${bjHandHtml('d', o.d)}${o.d.length === 1 && o.st !== 'done' ? '<div class="bjc ghost"></div>' : ''}</div><div class="bjtot ${bjT(o.d) > 21 ? 'bust' : ''}">${o.d.length ? (o.d.length === 2 && bjT(o.d) === 21 ? 'Blackjack' : bjTot(o.d)) : ''}</div>` : `<div class="bjd empty"><div class="bjc ghost"></div><div class="bjc ghost"></div></div>`;
+  const handBox = i => { const h = o['h' + i], act = o.st === 'play' && o.sp && o.cur === i, t = bjT(h), res = R?.hr?.[i];
+    return `<div class="bjpw ${act ? 'act' : ''} ${res ? 'r-' + res.k : ''}">${bjHandHtml('h' + i, h)}<div class="bjtot ${t > 21 ? 'bust' : ''}">${i === 0 && bjPBJ(o) ? 'Blackjack' : bjTot(h)}${o['db' + i] ? ' · zdvojeno' : ''}</div>${res ? `<div class="bjrr">${{ bj:'BLACKJACK', win:'VÝHRA', push:'REMÍZA', lose:'PROHRA', bust:'PŘES 21' }[res.k]}</div>` : ''}</div>`; };
+  const playerArea = o ? `<div class="bjp ${o.sp ? 'split' : ''}">${handBox(0)}${o.sp ? handBox(1) : ''}</div>` : `<div class="bjp"><div class="bjpw"><div class="bjh"><div class="bjc ghost"></div><div class="bjc ghost"></div></div></div></div>`;
+  const betSpots = !playing ? `<div class="bjspots">
+      <button class="bjspot side" data-act="bjchip" data-s="pp" ${S.bjBusy ? 'disabled' : ''}><small>Perfect Pairs</small>${bjChipStack(b.pp)}</button>
+      <button class="bjspot main" data-act="bjchip" data-s="a" ${S.bjBusy ? 'disabled' : ''}><small>Sázka</small>${bjChipStack(b.a)}</button>
+      <button class="bjspot side" data-act="bjchip" data-s="t3" ${S.bjBusy ? 'disabled' : ''}><small>21+3</small>${bjChipStack(b.t3)}</button></div>` :
+    `<div class="bjspots on"><div class="bjspot side sm"><small>PP</small>${bjChipStack(o.pp)}</div><div class="bjspot main sm"><small>Sázka</small>${bjChipStack(o.a * (o.sp ? 2 : 1) + (o.db0 ? o.a : 0) + (o.db1 ? o.a : 0))}</div><div class="bjspot side sm"><small>21+3</small>${bjChipStack(o.t3)}</div></div>`;
+  let ctl = '';
+  const tot = b.a + b.pp + b.t3;
+  if (playing && o.st === 'play' && !bjInsOk(o)) {
+    ctl = `<div class="bjins"><b>Krupiér má eso. Pojistit se?</b><span>Pojištění stojí ${fmtN(Math.trunc(o.a / 2))} b a platí 2:1, když krupiér dostane blackjack.</span>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn full" data-act="bjins" data-v="0" ${S.bjBusy ? 'disabled' : ''}>Ne</button><button class="btn pri full" data-act="bjins" data-v="1" ${S.bjBusy || Math.trunc(o.a / 2) < 1 ? 'disabled' : ''}>Pojistit</button></div></div>`;
+  } else if (playing && o.st === 'dealer' && !bjInsOk(o)) {
+    ctl = `<div class="bjins"><b>Máš blackjack a krupiér má eso. Pojistit se?</b><span>Pojištění stojí ${fmtN(Math.trunc(o.a / 2))} b a platí 2:1.</span>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn full" data-act="bjins" data-v="0" ${S.bjBusy ? 'disabled' : ''}>Ne</button><button class="btn pri full" data-act="bjins" data-v="1" ${S.bjBusy || Math.trunc(o.a / 2) < 1 ? 'disabled' : ''}>Pojistit</button></div></div>`;
+  } else if (playing && o.st === 'play') {
+    const h = o['h' + o.cur], can2 = h.length === 2 && !o['db' + o.cur] && !bjSplitAces(o), canSp = !o.sp && o.h0.length === 2 && bjV(o.h0[0]) === bjV(o.h0[1]);
+    const room = o.tot + o.a <= B.max && o.a <= S.profile.points, dis = S.bjBusy || !!o.pend;
+    ctl = `<div class="bjact"><button class="bja hit" data-act="bjact" data-k="hit" ${dis ? 'disabled' : ''}>${ic('plus')}<span>Karta</span></button>
+      <button class="bja stand" data-act="bjact" data-k="stand" ${dis ? 'disabled' : ''}>${ic('hand')}<span>Stát</span></button>
+      <button class="bja dbl" data-act="bjact" data-k="double" ${dis || !can2 || !room ? 'disabled' : ''}><b>2×</b><span>Zdvojit</span></button>
+      <button class="bja spl" data-act="bjact" data-k="split" ${dis || !canSp || !room ? 'disabled' : ''}>${ic('split')}<span>Rozdělit</span></button></div>`;
+  } else if (playing) {
+    ctl = `<div class="bjwait">Krupiér hraje…</div>`;
+  } else {
+    ctl = `<div class="bjchips">${[1, 5, 10, 25, 50].map(v => `<button class="cchip c${v} ${S.bjChip === v ? 'on' : ''}" data-act="bjchipv" data-v="${v}" aria-label="Žeton ${v} b">${v}</button>`).join('')}</div>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="icb" data-act="bjclear" aria-label="Smazat sázky" ${S.bjBusy || !tot ? 'disabled' : ''}>${ic('eraser')}</button>
+      <button class="icb" data-act="bjrep" aria-label="Vsadit jako minule" ${S.bjBusy ? 'disabled' : ''}>${ic('rotate-ccw')}</button>
+      <button class="btn pri full big" data-act="bjdeal" ${S.bjBusy || !b.a || !casCfg().on ? 'disabled' : ''}>${S.bjBusy ? 'Rozdávám…' : `Rozdat · ${fmtN(tot)} b`}</button></div>
+      <div class="mut" style="text-align:center;font-size:12.5px;margin-top:6px">Max. ${fmtN(B.max)} b na hru včetně side betů, zdvojení a rozdělení</div>`;
+  }
+  const res = R && o && o.st === 'done' ? `<div class="bjres ${R.pay > R.tot ? 'win' : R.pay === R.tot ? 'push' : 'lose'}"><b>${R.pay > R.tot ? `Výhra +${fmtN(R.pay - R.tot)} b` : R.pay === R.tot ? 'Vrácen vklad' : `Prohra −${fmtN(R.tot - R.pay)} b`}</b>
+      ${R.side.map(x => `<span>${x.n}: ${x.t}${x.r ? ` <em>+${fmtN(Math.trunc(x.r))} b</em>` : ''}</span>`).join('')}</div>` : '';
+  const wfTxt = (B.wf || 1) === 1 ? '3:2' : `${String(+(1.5 * B.wf).toFixed(2)).replace('.', ',')}:1`;
+  return `<div class="bjtable">
+      <div class="bjshoe"></div>
+      <div class="bjnote">Krupiér stojí na 17 · bere 2. kartu až po tobě</div>
+      ${dealerArea}
+      <div class="bjarc"><span>BLACKJACK PLATÍ ${wfTxt}</span><small>Pojištění platí 2:1</small></div>
+      ${playerArea}
+      ${betSpots}
+    </div>${res}<div class="cas-bar bjbar">${ctl}</div>
+    ${S.bjHist.length ? `<h2 style="margin-top:22px">Poslední hry</h2><div class="card cas-hist">${S.bjHist.map(x => { const net = x.pay - x.tot;
+      return `<div class="ch-r"><span class="cx">${bjT(x.h0) > 21 ? 'Přes' : bjT(x.h0)}</span><span class="t"><b>Blackjack</b><small>vklad ${fmtN(x.tot)} b · krupiér ${bjT(x.d) > 21 ? 'přes 21' : bjT(x.d)} · ${fmtDate(x.t0)}</small></span><b class="${net > 0 ? 'pos' : net < 0 ? 'neg' : ''}">${net > 0 ? '+' : ''}${fmtN(net)} b</b></div>`; }).join('')}</div>` : ''}`;
+}
+function bjInfoHtml(){
+  const B = bjCfg(), p = bjPOf(B.cum), sr = bjSideRtp(B.cum), wf = B.wf || 1;
+  const pA = p[0], p10 = p[9] + p[10] + p[11] + p[12], pN = (1 - pA - p10) / 8;
+  return `<h2>Blackjack</h2><div class="mut" style="margin:-4px 0 8px">Cíl: mít blíž k 21 než krupiér a nepřetáhnout. Max. ${fmtN(B.max)} b na hru včetně side betů, zdvojení a rozdělení.</div>
+    <div class="card" style="background:var(--card2)">
+      <div class="inf-r"><span>Blackjack (eso + desítka)</span><b>${wf === 1 ? '3:2' : String(+(1.5 * wf).toFixed(2)).replace('.', ',') + ':1'}</b></div>
+      <div class="inf-r"><span>Běžná výhra</span><b>${wf === 1 ? '1:1' : String(wf).replace('.', ',') + ':1'}</b></div>
+      <div class="inf-r"><span>Krupiér</span><b>stojí na 17</b></div>
+      <div class="inf-r"><span>Druhá karta krupiéra</span><b>až po tvém tahu</b></div>
+      <div class="inf-r"><span>Když má krupiér blackjack</span><b>prohráváš vše vsazené</b></div>
+      <div class="inf-r"><span>Zdvojení</span><b>na 2 kartách, i po rozdělení</b></div>
+      <div class="inf-r"><span>Rozdělení</span><b>1×, esa dostanou 1 kartu</b></div>
+      <div class="inf-r"><span>Max. karet v ruce</span><b>7</b></div></div>
+    <h2>Balíček</h2><div class="mut" style="margin:-4px 0 8px">Karty se míchají z nekonečného balíčku s těmito šancemi na každou kartu:</div>
+    <div class="card" style="background:var(--card2)"><div class="inf-r"><span>Eso</span><b>${pctS(pA, 2)}</b></div><div class="inf-r"><span>10, J, Q, K dohromady</span><b>${pctS(p10, 2)}</b></div><div class="inf-r"><span>Každá z karet 2–9</span><b>${pctS(pN, 2)}</b></div>
+      <div class="mut" style="font-size:12.5px;margin-top:6px">Klasický balíček: eso 7,69 %, desítky 30,77 %, každá z 2–9 7,69 %.</div></div>
+    <h2>Side bety a pojištění</h2><div class="card" style="background:var(--card2)">
+      <div class="inf-t">Perfect Pairs (první dvě karty)</div><div class="inf-r"><span>Stejný pár (barva i hodnost)</span><b>12,5:1</b></div><div class="inf-r"><span>Barevný pár</span><b>6:1</b></div><div class="inf-r"><span>Smíšený pár</span><b>3:1</b></div>
+      <div class="inf-t">21+3 (tvé 2 karty + krupiérova)</div><div class="inf-r"><span>Stejná trojice</span><b>50:1</b></div><div class="inf-r"><span>Postupka v barvě</span><b>20:1</b></div><div class="inf-r"><span>Trojice</span><b>15:1</b></div><div class="inf-r"><span>Postupka</span><b>5:1</b></div><div class="inf-r"><span>Barva</span><b>2,5:1</b></div>
+      <div class="inf-t">Pojištění</div><div class="inf-r"><span>Když má krupiér eso, platí při jeho blackjacku</span><b>2:1</b></div></div>`;
+}
 
 /* ================== EVENTY ================== */
 document.addEventListener('change', e => { if (e.target.id === 'cb_m') cbOptions(); });
@@ -3413,7 +4274,7 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, d = t.dataset;
   switch (a) {
     /* ---- Riskobet 2.2: kasino ---- */
-    case 'casg': if (S.casBusy) break; S.casG = d.g; S.casRes = null; render(); break;
+    case 'casg': if (S.casBusy || S.slotBusy || S.slotAuto > 0 || S.bjBusy || (S.bj && S.bj.st !== 'done')) break; S.casG = d.g; S.casRes = null; render(); break;
     case 'casamt': S.casAmt = d.v === 'max' ? Math.max(0, Math.min(S.profile.points, casCfg().wheel.max)) : +d.v; render(); break;
     case 'casspin': casSpin(); break;
     case 'casinfo': openCasInfo(); break;
@@ -3432,6 +4293,17 @@ document.addEventListener('click', async e => {
     case 'casedger': { const dd = casRead(), ee = Math.min(.95, Math.max(0, dd.er / 100)), o = dd.rw.slice(1).reduce((a, b) => a + b, 0);
       dd.rw[0] = Math.max(0, Math.round(o / (1 - ee) - o)); openCasSet(dd); break; }
     case 'cassave': casSave(); break;
+    case 'bjchip': bjAddChip(d.s); break;
+    case 'bjchipv': S.bjChip = +d.v; render(); break;
+    case 'bjclear': if (!S.bjBusy && !(S.bj && S.bj.st !== 'done')) { S.bjBet = { a:0, pp:0, t3:0 }; S.bj = null; S.bjRes = null; render(); } break;
+    case 'bjrep': if (!S.bjBusy && !(S.bj && S.bj.st !== 'done')) { S.bjBet = { ...S.bjLast }; S.bj = null; S.bjRes = null; render(); } break;
+    case 'bjdeal': if (S.bj && S.bj.st === 'done') { S.bj = null; S.bjRes = null; } bjDeal(); break;
+    case 'bjact': bjAct(d.k); break;
+    case 'bjins': bjIns(d.v === '1'); break;
+    case 'slotspin': S.slotAuto = 0; slotSpin(); break;
+    case 'slotbet': slotBetStep(+d.d); break;
+    case 'slotauto': slotAutoT(); break;
+    case 'slotsnd': S.sndOff = !S.sndOff; ls.set('snd_off', S.sndOff); slotSync(); if (!S.sndOff) SFX.win(1); break;
     /* ---- Riskobet 2.1 ---- */
     case 'slipmode': S.slipMode = d.m; S.slipSig = ''; renderSlip(); break;
     case 'soloall': S.slip.forEach(s => { S.soloAmt[s.m] = d.v; }); $sheet.querySelectorAll('.solo-amt').forEach(el => { el.value = d.v; }); updSlipTotals(); break;
