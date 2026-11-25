@@ -707,6 +707,10 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const slug = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim().replace(/\s+/g,'.').replace(/[^a-z0-9._-]/g,'');
 const emailOf = u => `${slug(u)}@${DOMAIN}`;
 const isAdmin = () => !!S.user && S.user.email === emailOf(ADMIN_USER);
+// admin účet se nezapočítává do statistik (jeho vlastní sázky a hry)
+const isAdmBet = b => isAdmin() && b.uid === S.user.uid;
+const statBets = () => S.allBets.filter(b => !isAdmBet(b));
+const statUsers = () => S.users.filter(u => !(isAdmin() && u.id === S.user.uid));
 const fmtOdds = o => (o > 1) ? Number(o).toFixed(2).replace('.', ',') : '–';
 const fmtN = n => Math.round(Number(n||0)).toLocaleString('cs-CZ');
 const fmtS = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmtN(Math.abs(n));
@@ -1320,9 +1324,9 @@ async function placeCore(slip, amount, comboId){
       if (seen[`${s.m}:${s.i}`] !== undefined && o.odds !== seen[`${s.m}:${s.i}`]) { const e = new Error('ODDS'); e.odds = true; throw e; }
       legs.push({ m: m.id, i: s.i, o: o.odds, e: m.ev, g: m.grp, lbl: o.label, t: legTitle(m), st: 'open', f: o.fo || o.odds });
       const tl = o.tl || 0; let odds = o.odds;
-      if (c.dropEvery > 0 && c.dropPct > 0) { const n = Math.floor((tl + amount) / c.dropEvery) - Math.floor(tl / c.dropEvery); if (n > 0) odds = Math.max(1.01, floor2(odds * Math.pow(1 - c.dropPct, n))); }
+      if (!isAdmin() && c.dropEvery > 0 && c.dropPct > 0) { const n = Math.floor((tl + amount) / c.dropEvery) - Math.floor(tl / c.dropEvery); if (n > 0) odds = Math.max(1.01, floor2(odds * Math.pow(1 - c.dropPct, n))); }
       fresh.push({ m, i: s.i });
-      const nOpts = m.options.map((x, k2) => k2 === s.i ? { ...x, tl: tl + amount, pw: (x.pw || 0) + Math.floor(amount * o.odds), n: (x.n || 0) + 1, odds,
+      const nOpts = m.options.map((x, k2) => k2 === s.i && !isAdmin() ? { ...x, tl: tl + amount, pw: (x.pw || 0) + Math.floor(amount * o.odds), n: (x.n || 0) + 1, odds,
         ...(odds !== o.odds ? { prev: o.odds, prevAt: Timestamp.fromDate(new Date()), h: [...(x.h || []), { t: Date.now(), o: odds }].slice(-20) } : {}) } : x);
       oldOpts[m.id] = m.options; newOpts[m.id] = nOpts; mUpd.push([sn.ref, nOpts]);
     });
@@ -1352,7 +1356,8 @@ async function placeCore(slip, amount, comboId){
     mUpd.forEach(([ref, options]) => tx.update(ref, { options }));
     return { status, total, legs, oldOpts, newOpts, id: bref.id };
   });
-  try { riskCheck(res.oldOpts, res.newOpts); } catch {}
+  if (isAdmin()) updateDoc(doc(db,'bets',res.id), { unc:true }).catch(()=>{});
+  else try { riskCheck(res.oldOpts, res.newOpts); } catch {}
   if (res.status === 'pending') ntfy('🎲 Tiket ke schválení', `${S.profile.name}: ${res.legs.map(l => `${l.t} – ${l.lbl}`).join(' + ')}\nKurz ${fmtOdds(res.total)} · vklad ${fmtN(amount)} b → výhra ${fmtN(amount*res.total)} b`);
   return res;
 }
@@ -1598,7 +1603,7 @@ async function sendOffer(){
   if (a === b.amount && o === b.odds) { $e.textContent = 'To je stejné jako původní tiket – dej rovnou Schválit.'; return; }
   try { const bt = writeBatch(db);
     bt.update(doc(db,'bets',b.id), { status:'offer', offerAmount:a, offerOdds:o, offerAt: serverTimestamp(), ca: a });
-    uncountOps(b, b.amount - a, false).forEach(([r, d]) => bt.update(r, d));
+    (b.unc ? [] : uncountOps(b, b.amount - a, false)).forEach(([r, d]) => bt.update(r, d));
     await bt.commit(); logA('Protinabídka', `${b.name} #${b.no}: ${b.amount} b @ ${fmtOdds(b.odds)} → ${a} b @ ${fmtOdds(o)}`); closeModal(); toast('Nabídka odeslána hráči'); pushUser(b.uid, 'Nabídka od bookmakera', `#${b.no}: ${fmtN(a)} b za kurz ${fmtOdds(o)}. Otevři Riskobet a rozhodni se.`, 'speech_balloon'); }
   catch(e){ $e.textContent = errTxt(e); }
 }
@@ -1623,7 +1628,7 @@ function viewAdmin(){
 
 /* ---- riziko ---- */
 function viewRisk(){
-  const live = S.allBets.filter(b => ['open','pending'].includes(b.status));
+  const live = statBets().filter(b => ['open','pending'].includes(b.status));
   const items = buildItems(S.markets).filter(i => itemStatus(i) !== 'done');
   if (!items.length) return `<div class="empty">${ic('shield')}<b>Žádné aktivní sázky</b></div>`;
   const singles = live.filter(b => b.legs.length === 1);
@@ -1649,7 +1654,7 @@ function viewRisk(){
 }
 /* ---- statistiky ---- */
 function viewStats(){
-  const bs = S.allBets.filter(b => !['rejected','void'].includes(b.status));
+  const bs = statBets().filter(b => !['rejected','void'].includes(b.status));
   const done = bs.filter(b => ['won','lost','cashout'].includes(b.status)), live = bs.filter(b => ['open','pending'].includes(b.status));
   const turn = bs.reduce((s,b)=>s+b.amount,0), dTurn = done.reduce((s,b)=>s+b.amount,0), paid = done.reduce((s,b)=>s+(b.payout||0),0);
   const profit = dTurn - paid, liab = live.reduce((s,b)=>s+possWin(b),0);
@@ -1753,7 +1758,7 @@ async function housekeeping(){
     const ttl = (S.cfg.offerTtl || 3) * 60000;
     for (const b of S.allBets.filter(b => b.status === 'offer' && ms(b.offerAt) && Date.now() - ms(b.offerAt) > ttl)) {
       const bt = writeBatch(db); bt.update(doc(db,'bets',b.id), { status:'rejected', payout:b.amount, voidedAt: serverTimestamp(), unc:true });
-      bt.update(doc(db,'users',b.uid), { points: increment(b.amount) }); uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+      bt.update(doc(db,'users',b.uid), { points: increment(b.amount) }); (b.unc ? [] : uncountOps(b, b.ca ?? b.amount, true)).forEach(([r, d]) => bt.update(r, d));
       await bt.commit().catch(()=>{}); logA('Nabídka vypršela', `${b.name} #${b.no}`); }
     for (const b of S.allBets.filter(b => ['rejected','void'].includes(b.status) && !b.unc)) {
       const bt = writeBatch(db); bt.update(doc(db,'bets',b.id), { unc:true }); uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
@@ -1780,7 +1785,7 @@ async function refundBet(bid, status){
   try { const bt = writeBatch(db);
     bt.update(doc(db,'bets',bid), { status, payout:b.amount, voidedAt: serverTimestamp(), unc:true });
     bt.update(doc(db,'users',b.uid), { points: increment(b.amount) });
-    uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+    (b.unc ? [] : uncountOps(b, b.ca ?? b.amount, true)).forEach(([r, d]) => bt.update(r, d));
     await bt.commit(); logA(status === 'rejected' ? 'Zamítnuto' : 'Storno', `${b.name} #${b.no} · ${b.amount} b @ ${fmtOdds(b.odds)}`); toast(status === 'rejected' ? 'Zamítnuto, body vráceny' : 'Tiket stornován, body vráceny');
     pushUser(b.uid, status === 'rejected' ? 'Tiket zamítnut' : 'Tiket stornován', `#${b.no}: vracíme ${fmtN(b.amount)} b.`, 'x'); } catch(e){ toast(errTxt(e), true); }
 }
@@ -2180,7 +2185,7 @@ function openCombos(){
   const list = comboList();
   openModal(`<h1>Hotovky</h1>
     <button class="btn pri full" data-act="cbnew">Nová hotovka</button>
-    ${list.map(c => { const st = comboState(c), bets = S.allBets.filter(b => b.combo === c.id && b.status !== 'rejected');
+    ${list.map(c => { const st = comboState(c), bets = statBets().filter(b => b.combo === c.id && b.status !== 'rejected');
       return `<div class="card combo" style="margin-top:10px"><div class="row sp"><b>${esc(c.title)}</b><span class="big" style="font-size:18px">${fmtOdds(c.odds)}</span></div>
         <div class="mut">${st.ok ? 'Aktivní' : '' + st.why} · ${(c.legs||[]).length} sázek · férový strop ${st.cap ? fmtOdds(floor2(st.cap)) : '–'}</div>
         <div class="mut">${bets.length} tiketů · ${fmtN(bets.reduce((s,b) => s + b.amount, 0))} b vsazeno</div>
@@ -2400,7 +2405,7 @@ function admHome(){
   const pend = pendingBets(), offers = S.allBets.filter(b => b.status === 'offer');
   const wait = dispItems().filter(i => itemStatus(i) === 'closed').sort((a,b) => itemClose(a) - itemClose(b));
   const today = new Date().toDateString(), dayOf = t => new Date(t || 0).toDateString();
-  const bs = S.allBets.filter(b => !['rejected','void'].includes(b.status));
+  const bs = statBets().filter(b => !['rejected','void'].includes(b.status));
   const doneT = bs.filter(b => ['won','lost','cashout'].includes(b.status) && dayOf(ms(b.settledAt) || ms(b.cashedAt) || ms(b.createdAt)) === today);
   const profit = doneT.reduce((s,b) => s + stakeOf(b) - paidOf(b), 0), liveB = bs.filter(b => ['open','pending','offer'].includes(b.status));
   const risk = buildItems(S.markets).filter(i => itemStatus(i) !== 'done').map(i => [i, ...itemExposure(i)]).filter(x => x[1] > 0).sort((a,b) => b[1] - a[1]).slice(0, 3);
@@ -2442,7 +2447,7 @@ function feedRows(){
   return list.length ? list.slice(0, 80).map(b => ticketCard(b, true)).join('') : `<div class="empty">${ic('receipt')}<b>Žádné tikety</b>${q ? 'Zkus jiné jméno nebo číslo tiketu.' : 'V tomhle filtru teď nic není.'}</div>`;
 }
 function playerRows(){
-  const q = norm(S.aq.trim()); let us = [...S.users]; if (q) us = us.filter(u => norm(u.name).includes(q));
+  const q = norm(S.aq.trim()); let us = [...statUsers()]; if (q) us = us.filter(u => norm(u.name).includes(q));
   us.sort(S.psort === 'name' ? (a,b) => a.name.localeCompare(b.name,'cs') : (a,b) => b.points - a.points);
   return us.map((u, i) => { const bs = S.allBets.filter(b => b.uid === u.id), open = bs.filter(b => ['open','pending','offer'].includes(b.status)), ps = playerStats(u.id);
     const lim = [isBlocked(u) ? 'blokován' : '', u.factor > 0 && u.factor < 1 ? `limity ${Math.round(u.factor*100)} %` : '', u.apprAll ? 'schvaluju vše' : u.apprLimit > 0 ? `schvaluju nad ${fmtN(u.apprLimit)}` : '', u.cashMode === 'off' ? 'bez cash-outu' : u.cashMode === 'bad' ? `cash-out −${pct(u.cashM ?? 0.3)} %` : ''].filter(Boolean).join(', ');
@@ -2980,7 +2985,7 @@ function copyTicket(fid){
 
 // ---- podezřelé sázení: víc hráčů najednou na outsidera, nebo nezvykle velký vklad ----
 function suspList(){
-  const now = Date.now(), out = [], recent = S.allBets.filter(b => ['open','pending','offer'].includes(b.status) && now - (ms(b.createdAt) || now) < 45 * 60e3);
+  const now = Date.now(), out = [], recent = statBets().filter(b => ['open','pending','offer'].includes(b.status) && now - (ms(b.createdAt) || now) < 45 * 60e3);
   const by = {};
   recent.forEach(b => b.legs.forEach(l => { const k = l.m + ':' + l.i; (by[k] = by[k] || { l, users: new Set(), sum: 0, bets: [] }); by[k].users.add(b.uid); by[k].sum += b.amount; by[k].bets.push(b); }));
   Object.entries(by).forEach(([k, x]) => { if (x.users.size >= 3 && x.l.o >= 3) out.push({ k, txt: `${x.users.size} hráčů za poslední půlhodinu na „${x.l.lbl}“ (kurz ${fmtOdds(x.l.o)})`, sub: x.l.t, sum: x.sum }); });
@@ -3163,13 +3168,13 @@ function pasteOdds(){
 // ---- exporty ----
 function csvBets(){
   const rows = [['Tiket','Hráč','Podáno','Stav','Kurz','Vklad','Vyplaceno','Zisk bookmakera','Sázky']];
-  S.allBets.forEach(b => rows.push([b.no || b.id, b.name, new Date(ms(b.createdAt) || Date.now()).toLocaleString('cs-CZ'), BET_TXT[betSt(b)] || b.status, fln(b.odds), stakeOf(b), paidOf(b),
+  statBets().forEach(b => rows.push([b.no || b.id, b.name, new Date(ms(b.createdAt) || Date.now()).toLocaleString('cs-CZ'), BET_TXT[betSt(b)] || b.status, fln(b.odds), stakeOf(b), paidOf(b),
     ['won','lost','cashout'].includes(b.status) ? stakeOf(b) - paidOf(b) : '', b.legs.map(l => `${l.t}: ${l.lbl} @${fln(l.o)}`).join(' | ')]));
   downloadCsv(`riskobet-tikety-${new Date().toISOString().slice(0,10)}.csv`, rows);
 }
 function csvPlayers(){
   const rows = [['Hráč','Body','Tiketů','Vsazeno','Vyplaceno','Zisk bookmakera','Úspěšnost %']];
-  S.users.forEach(u => { const p = playerStats(u.id); rows.push([u.name, u.points, p.n, p.staked, p.paid, p.staked - p.paid, p.done ? Math.round(p.won / p.done * 100) : 0]); });
+  statUsers().forEach(u => { const p = playerStats(u.id); rows.push([u.name, u.points, p.n, p.staked, p.paid, p.staked - p.paid, p.done ? Math.round(p.won / p.done * 100) : 0]); });
   downloadCsv(`riskobet-pokladna-${new Date().toISOString().slice(0,10)}.csv`, rows);
 }
 
@@ -3517,8 +3522,9 @@ function casRead(){
   return d;
 }
 function rtpRoul(w){
-  const W = w.reduce((a, b) => a + b, 0); if (!W) return null;
-  const pm = pmOf(w);
+  const W0 = w.reduce((a, b) => a + b, 0); if (!W0) return null;
+  const pm = pmOf(w), cu = cumOf(w), P = w.map((_, n) => (cu[n + 1] - cu[n]) / 1e6), W = 1;
+  w = P;
   const sum = f => { let s = 0; for (let n = 1; n <= 36; n++) if (f(n)) s += w[n]; return s / W; };
   const types = [['Číslo', null], ['Červená', n => RL_RED.includes(n), 2], ['Černá', n => !RL_RED.includes(n), 2], ['Sudá', n => n % 2 === 0, 2], ['Lichá', n => n % 2 === 1, 2],
     ['1–18', n => n <= 18, 2], ['19–36', n => n >= 19, 2], ...[0, 1, 2].map(v => [`${['1–12', '13–24', '25–36'][v]}`, n => Math.trunc((n - 1) / 12) === v, 3]), ...[0, 1, 2].map(v => [`${v + 1}. sloupec`, n => (n - 1) % 3 === v, 3])];
@@ -3528,24 +3534,24 @@ function rtpRoul(w){
 }
 function casSetCalc(){
   const d = casRead(); if (!d) return;
-  const W = d.segs.reduce((a, s) => a + s.w, 0), rtp = W ? d.segs.reduce((a, s) => a + s.w * s.m, 0) / W : 0;
+  const W = d.segs.reduce((a, s) => a + s.w, 0), cw = W ? cumOf(d.segs.map(s => s.w)) : null, rtp = W ? d.segs.reduce((a, s, i) => a + s.m * (cw[i + 1] - cw[i]) / 1e6, 0) : 0;
   d.segs.forEach((s, i) => { const el = document.getElementById('cs_p' + i); if (el) el.textContent = W && s.w ? pctS(s.w / W) : '–'; });
   const edge = x => `<b class="${x < 0 ? 'neg' : 'pos'}">${pctS(1 - x)}</b>`;
   const ws = document.getElementById('cs_ws');
-  if (ws) ws.innerHTML = W ? `Hráči v průměru dostanou zpět ${pctS(rtp)} vkladů. Tvoje výhoda ${edge(rtp)}.${rtp > 1 ? ' <span class="neg">Kolo by bylo pro hráče výdělečné.</span>' : ''}` : '<span class="neg">Kolo musí mít aspoň jedno políčko.</span>';
+  if (ws) ws.innerHTML = W ? `Hráči v průměru dostanou zpět ${pctS(rtp)} vkladů. Tvoje výhoda ${edge(rtp)}.${rtp > .98 ? ' <span class="neg">Výhoda kasina musí být aspoň 2 %, jinak nejde uložit.</span>' : ''}` : '<span class="neg">Kolo musí mít aspoň jedno políčko.</span>';
   bjSetCalcLater(d);
   const ss = document.getElementById('cs_ss');
   if (ss) { if (!(d.srtp >= 1 && d.srtp <= 98)) ss.innerHTML = '<span class="neg">Návratnost musí být mezi 1 a 98 %.</span>';
     else { const st = slotStats(slotCfgOf(d.srtp / 100, d.smax)); ss.innerHTML = `Nějaká výhra padne v ${pctS(st.hit, 0)} zatočení. Hráči v průměru dostanou zpět ${pctS(st.rtp)} vkladů. Tvoje výhoda ${edge(st.rtp)}. Největší výhra 100× sázka (${fmtN(d.smax * 100)} b).`; } }
   const R = rtpRoul(d.rw), rs = document.getElementById('cs_rs');
-  if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>${R.some(([, , b]) => b > 1 + 1e-9) ? '<div class="neg" style="margin-top:6px;font-weight:700">Některá sázka by byla pro hráče výdělečná. Takhle to uložit nejde, uprav šance čísel.</div>' : ''}` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
+  if (rs) rs.innerHTML = R ? `<div class="cs-rt">${R.map(([t, a, b]) => `<span>${t}</span><b>${Math.abs(a - b) < 1e-9 ? edge(a) : `${edge(b)} až ${edge(a)}`}</b>`).join('')}</div><div class="mut" style="margin-top:4px">Tvoje výhoda u jednotlivých sázek.</div>${R.some(([, , b]) => b > .98) ? '<div class="neg" style="margin-top:6px;font-weight:700">Některá sázka by měla výhodu kasina pod 2 % (nebo by byla pro hráče výdělečná). Takhle to uložit nejde, uprav šance.</div>' : ''}` : '<span class="neg">Ruleta musí mít aspoň jedno číslo.</span>';
 }
 async function casStats(){
   const el = () => document.getElementById('cs_st');
   try {
     const [q, qb] = await Promise.all([getDocs(collection(db,'cas')), getDocs(collection(db,'bj'))]);
     const BJL = qb.docs.map(x => x.data()).map(o => ({ ...o, g:'bj', a: o.tot, pay: o.pay || 0, t: o.t0, bjo: o }));
-    const ALL = [...q.docs.map(x => x.data()), ...BJL], L = ALL.filter(s => s.st === 'done');
+    const ALL = [...q.docs.map(x => x.data()), ...BJL].filter(s => s.uid !== S.user.uid), L = ALL.filter(s => s.st === 'done');
     if (!el()) return;
     if (!L.length) { el().innerHTML = '<span class="mut">Zatím se nehrálo.</span>'; return; }
     const row = (t, f) => { const g = L.filter(f), a = g.reduce((x, s) => x + s.a, 0), p = g.reduce((x, s) => x + s.pay, 0), pl = new Set(g.map(s => s.uid)).size;
@@ -3568,8 +3574,8 @@ async function casSave(){
   if (!(d.bedge >= 1 && d.bedge <= 30)) { toast('Výhoda blackjacku musí být mezi 1 a 30 %.', true); return; }
   const bs = bjSolve(d.bedge / 100), bsr = bjSideRtp(bs.cum);
   if (!(bs.edge >= d.bedge / 100 - .0005 && bs.edge > .005) || bsr.pp >= .98 || bsr.t3 >= .98 || bsr.ins >= .98) { toast('Blackjack by s tímhle nastavením nebyl bezpečně v plusu. Zkus jinou výhodu.', true); return; }
-  if (rtpRoul(d.rw).some(([, , b]) => b > 1 + 1e-9)) { toast('Některá sázka na ruletě by byla pro hráče výdělečná. Uprav šance čísel.', true); return; }
-  { const W = segs.reduce((a, s) => a + s.w, 0); if (segs.reduce((a, s) => a + s.w * s.m, 0) / W > 1) { toast('Kolo by bylo pro hráče výdělečné. Přidej políčka 0× nebo sniž násobky.', true); return; } }
+  if (rtpRoul(d.rw).some(([, , b]) => b > .98)) { toast('Každá sázka na ruletě musí mít výhodu kasina aspoň 2 %. Uprav šance.', true); return; }
+  { const cw = cumOf(segs.map(s => s.w)), rt = segs.reduce((a, s, i) => a + s.m * (cw[i + 1] - cw[i]) / 1e6, 0); if (rt > .98) { toast('Kolo musí mít výhodu kasina aspoň 2 %. Přidej políčka 0× nebo sniž násobky.', true); return; } }
   const casino = { on: d.on, wheel: { max: d.wmax, segs, m: segs.map(s => s.m), cum: cumOf(segs.map(s => s.w)) }, roul: { max: d.rmax, w: d.rw, cum: cumOf(d.rw), pm: pmOf(d.rw) }, slot: slotCfgOf(Math.round(d.srtp * 10) / 1000, d.smax), bj: { max: d.bmax, edge: d.bedge / 100, x: bs.x, wf: bs.wf, cum: bs.cum } };
   const was = !!S.cfg.casino?.on;
   try { await updateDoc(doc(db,'config','main'), { casino }); S.cfg.casino = casino;
@@ -3622,8 +3628,12 @@ function slotCfgOf(rtp, max){
   const i7 = SL_OUT.findIndex(o => o.s === 'seven' && o.n === 5), oth = SL_OUT.map((o, i) => i).filter(i => i > 0 && i !== i7);
   const Sw = oth.reduce((a, i) => a + SL_OUT[i].w, 0), Sqm = oth.reduce((a, i) => a + SL_OUT[i].w / Sw * SL_OUT[i].m, 0);
   const f = Math.max(0, (rtp - SL_P7 * SL_OUT[i7].m) / Sqm), pr = SL_OUT.map(() => 0);
-  oth.forEach(i => { pr[i] = f * SL_OUT[i].w / Sw; }); pr[i7] = SL_P7; pr[0] = Math.max(0, 1 - SL_P7 - f);
-  return { rtp, max, m: SL_OUT.map(o => o.m), cum: cumOf(pr) };
+  oth.forEach(i => { pr[i] = f * SL_OUT[i].w / Sw; }); pr[i7] = SL_P7;
+  // šířky na škále 1 000 000 zaokrouhlené dolů u výher, zbytek připadne prohře → RTP nikdy nepřesáhne nastavení
+  const wd = pr.map((q, i) => i === 0 ? 0 : (i === i7 ? 100 : Math.floor(q * 1e6)));
+  wd[0] = 1e6 - wd.reduce((a, b) => a + b, 0);
+  const cum = [0]; wd.forEach(x => cum.push(cum[cum.length - 1] + x));
+  return { rtp, max, m: SL_OUT.map(o => o.m), cum };
 }
 function slotStats(sl){
   let rtp = 0; for (let i = 0; i < sl.m.length; i++) rtp += sl.m[i] * (sl.cum[i + 1] - sl.cum[i]) / 1e6;
@@ -4261,6 +4271,25 @@ function bjInfoHtml(){
       <div class="inf-t">21+3 (tvé 2 karty + krupiérova)</div><div class="inf-r"><span>Stejná trojice</span><b>50:1</b></div><div class="inf-r"><span>Postupka v barvě</span><b>20:1</b></div><div class="inf-r"><span>Trojice</span><b>15:1</b></div><div class="inf-r"><span>Postupka</span><b>5:1</b></div><div class="inf-r"><span>Barva</span><b>2,5:1</b></div>
       <div class="inf-t">Pojištění</div><div class="inf-r"><span>Když má krupiér eso, platí při jeho blackjacku</span><b>2:1</b></div></div>`;
 }
+
+// Dřív se vlastní sázky admina započítávaly do statistik zápasů (Vsazeno, Tiketů, procenta).
+// Tohle je jednou odečte (stejně jako u zamítnutých tiketů) a zapíše do nastavení, že je hotovo.
+let admMigBusy = false;
+async function admMigrate(){
+  if (admMigBusy || !isAdmin() || !S.cfgLoaded || !S.betsLoaded || !S.markets.length || S.cfg.admStatsFixed) return;
+  admMigBusy = true;
+  try {
+    const mine = S.allBets.filter(b => b.uid === S.user.uid && !b.unc && !['rejected','void'].includes(b.status));
+    for (const b of mine) {
+      const bt = writeBatch(db); bt.update(doc(db,'bets',b.id), { unc:true });
+      uncountOps(b, b.ca ?? b.amount, true).forEach(([r, d]) => bt.update(r, d));
+      await bt.commit(); b.unc = true;
+    }
+    await updateDoc(doc(db,'config','main'), { admStatsFixed: true }); S.cfg.admStatsFixed = true;
+    if (mine.length) { logA('Statistiky', `Odečteno ${mine.length} vlastních tiketů admina ze statistik`); toast(`Tvoje vlastní tikety (${mine.length}) jsou odečtené ze statistik`); }
+  } catch(e){ console.warn('admMigrate', e); } finally { admMigBusy = false; }
+}
+setInterval(admMigrate, 3000);
 
 /* ================== EVENTY ================== */
 document.addEventListener('change', e => { if (e.target.id === 'cb_m') cbOptions(); });
