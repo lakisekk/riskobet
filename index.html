@@ -3500,6 +3500,7 @@ function openCasSet(draft){
     <div class="cs-sum" id="cs_rs"></div>
     <div class="row" style="gap:8px;align-items:center"><span class="mut">Chci výhodu</span><input id="cs_er" type="number" inputmode="decimal" style="width:72px" value="${d.er}"><span class="mut">%</span><button class="btn sm" data-act="casedger">Dopočítat nulu</button></div>
     <h2 style="margin-top:18px">Jak to jde</h2><div id="cs_st" class="card" style="background:var(--card2)"><span class="mut">Načítám…</span></div>
+    <button class="btn sm" style="margin-top:10px" data-act="bjfix">${ic('rotate-ccw')}Dohrát zaseknuté hry blackjacku</button>
     <h2 style="margin-top:18px">Poslední hry</h2><div class="mut" style="margin:-4px 0 8px">Posledních 40 her. Číslo vpravo je tvůj zisk (+) nebo ztráta (−) z dané hry.</div><div id="cs_last" class="card cs-last" style="background:var(--card2)"><span class="mut">Načítám…</span></div>
     <div class="row" style="margin-top:14px"><button class="btn full" data-act="close">Zrušit</button><button class="btn pri full" data-act="cassave">Uložit</button></div></div>`, { keep:true, cas: d });
   casSetCalc(); casStats();
@@ -4011,17 +4012,18 @@ function bjReveal(o){
   const P = o.pend, cum = o.cum, n = { pend: null, op: 'reveal' };
   if (P.to === 'deal') {
     const c0 = bjCard(P.t, 0, cum), c1 = bjCard(P.t, 1, cum), c2 = bjCard(P.t, 2, cum);
-    Object.assign(n, { h0: [c0, c2], d: [c1], p2: [c0, c2], dn0: bjT([c0, c2]) === 21 });
+    Object.assign(n, { h0: [c0, c2], d: [c1], p2: [c0, c2], dn0: bjT([c0, c2]) === 21, s0: bjV(c0) + bjV(c2), a0: c0 < 4 || c2 < 4, sd: bjV(c1), ad: c1 < 4 });
     n.st = n.dn0 ? 'dealer' : 'play';
   } else if (P.to === 'h0' || P.to === 'h1') {
-    const X = P.to === 'h0' ? 0 : 1, h = [...o['h' + X], bjCard(P.t, 0, cum)];
-    n['h' + X] = h; n['dn' + X] = bjT(h) >= 21 || o['db' + X] || h.length >= 7;
+    const X = P.to === 'h0' ? 0 : 1, c = bjCard(P.t, 0, cum), h = [...o['h' + X], c];
+    n['h' + X] = h; n['s' + X] = o['s' + X] + bjV(c); n['a' + X] = !!o['a' + X] || c < 4;
+    n['dn' + X] = bjT(h) >= 21 || o['db' + X] || h.length >= 7;
     const m = { ...o, ...n }; n.cur = m.sp && m.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play';
   } else if (P.to === 'split') {
-    const h0 = [...o.h0, bjCard(P.t, 0, cum)], h1 = [...o.h1, bjCard(P.t, 1, cum)], ac = o.h0[0] < 4;
-    Object.assign(n, { h0, h1, dn0: ac || bjT(h0) >= 21, dn1: ac || bjT(h1) >= 21 });
+    const c0 = bjCard(P.t, 0, cum), c1 = bjCard(P.t, 1, cum), h0 = [...o.h0, c0], h1 = [...o.h1, c1], ac = o.h0[0] < 4;
+    Object.assign(n, { h0, h1, dn0: ac || bjT(h0) >= 21, dn1: ac || bjT(h1) >= 21, s0: o.s0 + bjV(c0), a0: !!o.a0 || c0 < 4, s1: o.s1 + bjV(c1), a1: !!o.a1 || c1 < 4 });
     const m = { ...o, ...n }; n.cur = n.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play';
-  } else if (P.to === 'd') n.d = [...o.d, bjCard(P.t, 0, cum)];
+  } else if (P.to === 'd') { const c = bjCard(P.t, 0, cum); n.d = [...o.d, c]; n.sd = o.sd + bjV(c); n.ad = !!o.ad || c < 4; }
   return n;
 }
 // ---------- zvuky ----------
@@ -4051,7 +4053,8 @@ async function bjLoad(){
     const q = await getDocs(query(collection(db,'bj'), where('uid','==',S.user.uid)));
     const L = q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.t0) - ms(a.t0));
     S.bjHist = L.filter(o => o.st === 'done').slice(0, 8);
-    const act = L.find(o => o.st !== 'done');
+    const act = L.find(o => o.st !== 'done' && o.s0 !== undefined && Date.now() - ms(o.t0) < 6 * 3600e3);
+    if (L.some(o => o.st !== 'done' && o.s0 === undefined)) toast('Starší rozehranou hru blackjacku dohraje bookmaker, body dostaneš.');
     if (act) { S.bj = act; S.bjShown = {}; render(); await bjContinue(); }
     else render();
   } catch(e){ render(); }
@@ -4078,7 +4081,7 @@ async function bjContinue(){
     if (o.pend) { const snap = await getDocFromServer(doc(db,'bj',o.id)); S.bj = o = { id: o.id, ...snap.data() };
       if (o.pend) { const n = bjReveal(o); await bjWrite(n); Object.assign(o, n); bjSnd.card(); render(); await bjWait(380); } }
     if (o.st === 'dealer' && bjInsOk(o)) await bjDealer();
-  } catch(e){ toast(errTxt(e), true); }
+  } catch(e){ S.bjErr = errTxt(e); toast(S.bjErr, true); }
   S.bjBusy = false; render();
 }
 async function bjDeal(){
@@ -4091,11 +4094,11 @@ async function bjDeal(){
   if (b.a < 1) { toast('Polož žeton na hlavní sázku.', true); return; }
   if (tot > B.max) { toast(`Max. ${fmtN(B.max)} b na celou hru včetně zdvojení a rozdělení.`, true); return; }
   if (tot > S.profile.points) { toast(`Tolik bodů nemáš (máš ${fmtN(S.profile.points)} b).`, true); return; }
-  S.bjBusy = true; S.bjRes = null; S.bjShown = {}; render();
+  S.bjBusy = true; S.bjRes = null; S.bjShown = {}; S.bjErr = ''; render();
   const ref = doc(collection(db,'bj'));
   try {
     const o = { uid: S.user.uid, name: S.profile.name || '', g:'bj', a: b.a, pp: b.pp, t3: b.t3, ins: 0, insd: false, tot, cum: B.cum, wf: B.wf,
-      h0: [], h1: [], sp: false, d: [], p2: [], db0: false, db1: false, dn0: false, dn1: false, cur: 0, st:'play', pend: { t: serverTimestamp(), n: 3, to:'deal' }, op:'bet', pay: 0, t0: serverTimestamp() };
+      h0: [], h1: [], sp: false, d: [], p2: [], db0: false, db1: false, dn0: false, dn1: false, cur: 0, s0: 0, a0: false, s1: 0, a1: false, sd: 0, ad: false, st:'play', pend: { t: serverTimestamp(), n: 3, to:'deal' }, op:'bet', pay: 0, t0: serverTimestamp() };
     const bt = writeBatch(db); bt.set(ref, o); bt.update(doc(db,'users',S.user.uid), { points: increment(-tot) }); await bt.commit();
     bjSnd.chip();
     S.bjLast = { ...b };
@@ -4104,7 +4107,7 @@ async function bjDeal(){
     for (let i = 0; i < 3; i++) setTimeout(() => bjSnd.card(), i * 160);
     render(); await bjWait(650);
     if (S.bj.st === 'dealer' && bjInsOk(S.bj)) await bjDealer();
-  } catch(e){ toast(errTxt(e), true); }
+  } catch(e){ S.bjErr = errTxt(e); toast(S.bjErr, true); }
   S.bjBusy = false; render();
 }
 async function bjAct(kind){
@@ -4113,7 +4116,7 @@ async function bjAct(kind){
   S.bjBusy = true; render();
   try {
     if (kind === 'hit') { await bjDraw({ op:'hit', pend: { n:1, to:'h' + X } }); bjSnd.card(); }
-    else if (kind === 'stand') { const n = { op:'stand', ['dn' + X]: true }; const m = { ...o, ...n }; n.cur = m.sp && m.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play'; await bjWrite(n); Object.assign(o, n); }
+    else if (kind === 'stand') { const n = { op:'stand', ['dn' + X]: true }; const m = { ...o, ...n }; if (X === 0) n.cur = m.sp && m.dn0 ? 1 : 0; n.st = bjAllDone(m) ? 'dealer' : 'play'; await bjWrite(n); Object.assign(o, n); }
     else if (kind === 'double') {
       if (o.tot + o.a > B.max) throw { msg: `Zdvojení by přesáhlo max. ${fmtN(B.max)} b na hru.` };
       if (o.a > S.profile.points) throw { msg: 'Na zdvojení nemáš dost bodů.' };
@@ -4121,12 +4124,12 @@ async function bjAct(kind){
     } else if (kind === 'split') {
       if (o.tot + o.a > B.max) throw { msg: `Rozdělení by přesáhlo max. ${fmtN(B.max)} b na hru.` };
       if (o.a > S.profile.points) throw { msg: 'Na rozdělení nemáš dost bodů.' };
-      bjSnd.chip(); await bjDraw({ op:'split', sp: true, h0: [o.h0[0]], h1: [o.h0[1]], tot: o.tot + o.a, pend: { n:2, to:'split' } }, o.a); bjSnd.card(); setTimeout(() => bjSnd.card(), 150);
+      bjSnd.chip(); await bjDraw({ op:'split', sp: true, h0: [o.h0[0]], h1: [o.h0[1]], s0: bjV(o.h0[0]), a0: o.h0[0] < 4, s1: bjV(o.h0[1]), a1: o.h0[1] < 4, tot: o.tot + o.a, pend: { n:2, to:'split' } }, o.a); bjSnd.card(); setTimeout(() => bjSnd.card(), 150);
     }
     const n = S.bj; if (bjT(n['h' + X]) > 21) bjSnd.bust();
     render(); await bjWait(420);
     if (S.bj.st === 'dealer') await bjDealer();
-  } catch(e){ toast(e.msg || errTxt(e), true); }
+  } catch(e){ if (!e.msg) S.bjErr = errTxt(e); toast(e.msg || errTxt(e), true); }
   S.bjBusy = false; render();
 }
 async function bjIns(take){
@@ -4137,7 +4140,7 @@ async function bjIns(take){
   S.bjBusy = true; render();
   try { const n = { op:'ins', ins, insd: true, tot: o.tot + ins }; await bjWrite(n, ins); Object.assign(o, n); if (ins) bjSnd.chip();
     if (o.st === 'dealer') await bjDealer(); }
-  catch(e){ toast(errTxt(e), true); }
+  catch(e){ S.bjErr = errTxt(e); toast(S.bjErr, true); }
   S.bjBusy = false; render();
 }
 async function bjDealer(){
@@ -4220,6 +4223,8 @@ function viewBJ(){
   } else if (playing && o.st === 'dealer' && !bjInsOk(o)) {
     ctl = `<div class="bjins"><b>Máš blackjack a krupiér má eso. Pojistit se?</b><span>Pojištění stojí ${fmtN(Math.trunc(o.a / 2))} b a platí 2:1.</span>
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn full" data-act="bjins" data-v="0" ${S.bjBusy ? 'disabled' : ''}>Ne</button><button class="btn pri full" data-act="bjins" data-v="1" ${S.bjBusy || Math.trunc(o.a / 2) < 1 ? 'disabled' : ''}>Pojistit</button></div></div>`;
+  } else if (playing && !S.bjBusy && !S.bjDealing && (o.pend || o.st === 'dealer')) {
+    ctl = `<div class="bjins"><b>Hra se nedokončila</b><span>${esc(S.bjErr || 'Spojení se přerušilo.')} Klikni a hra se dohraje.</span><button class="btn pri full" style="margin-top:10px" data-act="bjretry">Dokončit hru</button></div>`;
   } else if (playing && o.st === 'play') {
     const h = o['h' + o.cur], can2 = h.length === 2 && !o['db' + o.cur] && !bjSplitAces(o), canSp = !o.sp && o.h0.length === 2 && bjV(o.h0[0]) === bjV(o.h0[1]);
     const room = o.tot + o.a <= B.max && o.a <= S.profile.points, dis = S.bjBusy || !!o.pend;
@@ -4270,6 +4275,28 @@ function bjInfoHtml(){
       <div class="inf-t">Perfect Pairs (první dvě karty)</div><div class="inf-r"><span>Stejný pár (barva i hodnost)</span><b>12,5:1</b></div><div class="inf-r"><span>Barevný pár</span><b>6:1</b></div><div class="inf-r"><span>Smíšený pár</span><b>3:1</b></div>
       <div class="inf-t">21+3 (tvé 2 karty + krupiérova)</div><div class="inf-r"><span>Stejná trojice</span><b>50:1</b></div><div class="inf-r"><span>Postupka v barvě</span><b>20:1</b></div><div class="inf-r"><span>Trojice</span><b>15:1</b></div><div class="inf-r"><span>Postupka</span><b>5:1</b></div><div class="inf-r"><span>Barva</span><b>2,5:1</b></div>
       <div class="inf-t">Pojištění</div><div class="inf-r"><span>Když má krupiér eso, platí při jeho blackjacku</span><b>2:1</b></div></div>`;
+}
+// admin: dohraje zaseknuté hry (starší než 10 min). Když krupiér už dohrál, vyplatí výsledek, jinak vrátí vklad.
+async function bjFixStuck(){
+  if (!isAdmin()) return;
+  try {
+    const q = await getDocs(collection(db,'bj'));
+    const L = q.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => o.st !== 'done' && Date.now() - (ms(o.t0) || 0) > 10 * 60e3);
+    if (!L.length) { toast('Žádné zaseknuté hry'); return; }
+    let paid = 0;
+    for (const o of L) {
+      const fin = o.st === 'dealer' && !o.pend && bjInsOk(o) && !bjDealerDraw(o) && o.h0?.length && o.d?.length;
+      const pay = fin ? bjPay(o) : o.tot;
+      const bt = writeBatch(db);
+      bt.update(doc(db,'bj',o.id), { op:'settle', st:'done', pay, done: serverTimestamp(), ...(fin ? {} : { refunded: true }) });
+      if (pay) bt.update(doc(db,'users',o.uid), { points: increment(pay) });
+      await bt.commit(); paid += pay;
+      logA('Blackjack', `Dohraná zaseknutá hra ${o.name}: ${fin ? 'výplata' : 'vrácený vklad'} ${pay} b`);
+    }
+    toast(`Dohráno ${L.length} ${L.length === 1 ? 'hra' : L.length < 5 ? 'hry' : 'her'}, vyplaceno ${fmtN(paid)} b`);
+    if (S.bj && L.some(o => o.id === S.bj.id)) { S.bj = null; S.bjRes = null; }
+    casStats(); render();
+  } catch(e){ toast(errTxt(e), true); }
 }
 
 // Dřív se vlastní sázky admina započítávaly do statistik zápasů (Vsazeno, Tiketů, procenta).
@@ -4328,6 +4355,8 @@ document.addEventListener('click', async e => {
     case 'bjrep': if (!S.bjBusy && !(S.bj && S.bj.st !== 'done')) { S.bjBet = { ...S.bjLast }; S.bj = null; S.bjRes = null; render(); } break;
     case 'bjdeal': if (S.bj && S.bj.st === 'done') { S.bj = null; S.bjRes = null; } bjDeal(); break;
     case 'bjact': bjAct(d.k); break;
+    case 'bjretry': S.bjErr = ''; bjContinue(); break;
+    case 'bjfix': bjFixStuck(); break;
     case 'bjins': bjIns(d.v === '1'); break;
     case 'slotspin': S.slotAuto = 0; slotSpin(); break;
     case 'slotbet': slotBetStep(+d.d); break;
