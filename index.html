@@ -600,6 +600,8 @@ nav .dot{position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;bor
 .bjbar .btn.big{white-space:nowrap;flex:1}
 .bjbar .icb{flex:none;width:46px;height:46px;border-radius:12px;background:var(--card2)}
 .badge.demo{background:rgba(180,140,255,.15);color:#c9adff}
+#netbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:9999;background:#3a1414;color:#ffd6d6;border:1px solid #6b2222;border-radius:14px;padding:10px 14px;font-size:14px;font-weight:600;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#netbar small{opacity:.7;font-weight:500}
 </style>
 </head>
 <body>
@@ -1017,26 +1019,26 @@ onAuthStateChanged(auth, user => {
   S.showStats = new Set(ls.get('stats_open') || []); S.archive = false;
   if (isAdmin()) S.tab = 'admin';
   $app.innerHTML = '<div class="empty">Načítám…</div>';
-  S.unsubs.push(onSnapshot(doc(db,'users',user.uid), snap => {
+  S.unsubs.push(onSnapR(doc(db,'users',user.uid), snap => {
     if (!snap.exists()) {
       if (!S.registering) { const name = user.email.split('@')[0]; setDoc(doc(db,'users',user.uid), { name, username:name, points:START_POINTS, createdAt:serverTimestamp() }).catch(()=>{}); }
       return;
     }
     S.profile = { id: snap.id, ...snap.data() }; if (!isAdmin()) S.users = [S.profile]; refresh();
   }));
-  S.unsubs.push(onSnapshot(doc(db,'config','main'), snap => {
+  S.unsubs.push(onSnapR(doc(db,'config','main'), snap => {
     S.cfg = { ...DEF_CFG, ...(snap.exists() ? snap.data() : {}) }; S.cfgLoaded = true;
     if (!snap.exists() && isAdmin()) setDoc(doc(db,'config','main'), DEF_CFG).catch(()=>{});
     refresh();
   }, () => {}));
-  S.unsubs.push(onSnapshot(collection(db,'markets'), snap => {
+  S.unsubs.push(onSnapR(collection(db,'markets'), snap => {
     S.markets = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (ms(b.createdAt)||Date.now()) - (ms(a.createdAt)||Date.now()) || (a.order??0) - (b.order??0));
     refresh();
   }));
-  S.unsubs.push(onSnapshot(collection(db,'feed'), snap => { S.feed = snap.docs.map(d => ({ id:d.id, ...d.data() })); S.feedLoaded = true; refresh(); }, () => {}));
-  if (isAdmin()) S.unsubs.push(onSnapshot(collection(db,'users'), snap => { S.users = snap.docs.map(d => ({ id:d.id, ...d.data() })); refresh(); }));
+  S.unsubs.push(onSnapR(collection(db,'feed'), snap => { S.feed = snap.docs.map(d => ({ id:d.id, ...d.data() })); S.feedLoaded = true; refresh(); }, () => {}));
+  if (isAdmin()) S.unsubs.push(onSnapR(collection(db,'users'), snap => { S.users = snap.docs.map(d => ({ id:d.id, ...d.data() })); refresh(); }));
   const betsQ = isAdmin() ? collection(db,'bets') : query(collection(db,'bets'), where('uid','==',user.uid));
-  S.unsubs.push(onSnapshot(betsQ, snap => {
+  S.unsubs.push(onSnapR(betsQ, snap => {
     const all = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (ms(b.createdAt)||Date.now()) - (ms(a.createdAt)||Date.now()));
     S.allBets = all; S.myBets = all.filter(b => b.uid === user.uid);
     if (isAdmin()) {
@@ -4454,6 +4456,39 @@ async function mtplDel(){
   catch(e){ toast(errTxt(e), true); }
 }
 document.addEventListener('change', e => { if (e.target.id === 'mf_tpl') mtplApply(parseInt(e.target.value)); });
+
+// Posluchač Firebase, který se po chybě sám znovu připojí.
+// Dřív stačila jedna chyba při otevření (výpadek, prošlé přihlášení, chyba při vykreslení) a data už nedorazila: všude 0.
+const NET = { bad: new Map(), shown: 0 };
+function onSnapR(ref, next, onErr){
+  let un = null, dead = false, tries = 0, to = null;
+  const key = ref.path || ref._query?.path?.canonicalString?.() || Math.random().toString(36);
+  const go = () => {
+    if (dead) return;
+    un = onSnapshot(ref, s => {
+      tries = 0; if (NET.bad.delete(key) && !NET.bad.size) netBanner();
+      try { next(s); } catch(e){ console.error('Chyba při zpracování dat', e); }
+    }, async e => {
+      console.warn('Posluchač spadl, zkouším znovu', key, e.code, e.message);
+      try { onErr && onErr(e); } catch {}
+      if (dead) return;
+      NET.bad.set(key, e.code || 'chyba'); netBanner(); tries++;
+      if (['permission-denied','unauthenticated'].includes(e.code)) { try { await auth.currentUser?.getIdToken(true); } catch {} }
+      to = setTimeout(go, Math.min(15000, 700 * 2 ** Math.min(tries, 5)));
+    });
+  };
+  go();
+  return () => { dead = true; clearTimeout(to); NET.bad.delete(key); try { un && un(); } catch {} };
+}
+function netBanner(){
+  let el = document.getElementById('netbar');
+  if (!NET.bad.size) { el?.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'netbar'; document.body.appendChild(el); }
+  const codes = [...new Set(NET.bad.values())].join(', ');
+  el.innerHTML = `Data se nenačetla, zkouším to znovu… <small>(${esc(codes)})</small>`;
+}
+// po návratu do appky z pozadí: pokud něco nejede, rovnou to zkusit znovu
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && NET.bad.size && auth.currentUser) auth.currentUser.getIdToken(true).catch(() => {}); });
 
 /* ================== EVENTY ================== */
 document.addEventListener('change', e => { if (e.target.id === 'cb_m') cbOptions(); });
